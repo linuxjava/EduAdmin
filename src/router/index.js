@@ -78,8 +78,8 @@ export const constantRoutes = [
       {
         path: 'dashboard',
         component: () => import('@/views/dashboard/index'),
-        name: 'Dashboard',
-        meta: { title: 'Dashboard', icon: 'dashboard', affix: true }
+        name: '概览',
+        meta: { title: '概览', icon: 'dashboard', affix: true }
       }
     ]
   },
@@ -129,6 +129,42 @@ export const constantRoutes = [
  * the routes that need to be dynamically loaded based on user roles
  */
 export const asyncRoutes = [
+  {
+    path: '/course',
+    component: Layout,
+    redirect: '/course/media',
+    alwaysShow: true,
+    name: 'Course',
+    meta: {
+      title: '课程', icon: 'excel', roles: ['admin', 'editor']
+    },
+    children: [
+      {
+        path: 'media',
+        component: () => import('@/views/course/media'),
+        name: 'Media',
+        meta: { title: '图文', icon: 'dashboard' }
+      },
+      {
+        path: 'audio',
+        component: () => import('@/views/course/audio'),
+        name: 'Audio',
+        meta: { title: '音频', icon: 'dashboard' }
+      },
+      {
+        path: 'video',
+        component: () => import('@/views/course/video'),
+        name: 'Video',
+        meta: { title: '视频', icon: 'dashboard' }
+      },
+      {
+        path: 'column',
+        component: () => import('@/views/course/column'),
+        name: 'Column',
+        meta: { title: '专栏', icon: 'dashboard' }
+      }
+    ]
+  },
   {
     path: '/permission',
     component: Layout,
