@@ -2,7 +2,7 @@
   <div class="app-container">
     <div class="filter-container">
       <el-input v-model="listQuery.title" placeholder="Title" style="width: 200px;" class="filter-item" @keyup.enter.native="handleFilter" />
-      <el-select v-model="listQuery.importance" placeholder="Imp" clearable style="width: 90px" class="filter-item">
+      <el-select v-model="listQuery.importance" placeholder="商品状态" clearable style="width: 90px" class="filter-item">
         <el-option v-for="item in importanceOptions" :key="item" :label="item" :value="item" />
       </el-select>
       <el-select v-model="listQuery.type" placeholder="Type" clearable class="filter-item" style="width: 130px">
@@ -196,7 +196,7 @@ export default {
         type: undefined,
         sort: '+id'
       },
-      importanceOptions: [1, 2, 3],
+      importanceOptions: [1, 2, 3, 4, 5, 6, 7],
       calendarTypeOptions,
       sortOptions: [{ label: 'ID Ascending', key: '+id' }, { label: 'ID Descending', key: '-id' }],
       statusOptions: ['published', 'draft', 'deleted'],
