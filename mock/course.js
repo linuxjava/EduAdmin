@@ -10,7 +10,7 @@ for (let i = 0; i < count; i++) {
   List.push(Mock.mock({
     id: '@increment',
     cover: '@image(200x100)',
-    title: '@title(5, 10)',
+    title: '@ctitle(5, 10)',
     try: '@cparagraph', //试看内容(免费)
     content: '@cparagraph', //课程内容(收费)
     price: '@integer(1, 100)',

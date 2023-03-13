@@ -7,10 +7,10 @@
           v-model="listQuery.status"
           placeholder="商品状态"
           clearable
-          style="width: 90px;margin-right: 10px"
+          style="width: 110px;margin-right: 10px"
           class="filter-item"
         >
-          <el-option v-for="item in importanceOptions" :key="item" :label="item" :value="item === '未上架' ? 0 : 1" />
+          <el-option v-for="(item, k) in statusOptions" :key="k" :label="item" :value="k" />
         </el-select>
         <el-input
           v-model="listQuery.title"
@@ -61,14 +61,14 @@
       <el-table-column label="状态" width="100px" align="center">
         <template slot-scope="{row}">
           <el-tag :type="row.status | statusFilter">
-            {{ importanceOptions[row.status] }}
+            {{ statusOptions[row.status] }}
           </el-tag>
         </template>
       </el-table-column>
 
       <el-table-column label="创建时间" width="150px" align="center">
         <template slot-scope="{row}">
-          <span>{{ row.created_time | parseTime('{y}-{m}-{d} {h}:{i}') }}</span>
+          <span>{{ row.created_time }}</span>
         </template>
       </el-table-column>
 
@@ -77,10 +77,10 @@
           <el-button type="primary" size="mini">
             编辑
           </el-button>
-          <el-button v-if="row.status === '0'" size="mini" type="success">
+          <el-button v-if="row.status == 0" size="mini" type="success" @click="changeProductStatus(row, 1)">
             上架
           </el-button>
-          <el-button v-if="row.status === '1'" size="mini">
+          <el-button v-if="row.status == 1" size="mini" @click="changeProductStatus(row, 0)">
             下架
           </el-button>
           <el-button size="mini" type="danger">
@@ -97,7 +97,6 @@
 <script>
 import waves from '@/directive/waves' // waves directive
 import Pagination from '@/components/Pagination' // secondary package based on el-pagination
-import { parseTime } from '@/utils'
 import { fetchList } from '@/api/course'
 
 export default {
@@ -127,7 +126,7 @@ export default {
         sort: '+id'
       },
       listLoading: true,
-      importanceOptions: ['未上架', '已上架']
+      statusOptions: ['未上架', '已上架']
     }
   },
   created() {
@@ -167,6 +166,13 @@ export default {
     },//Id排序end
     search() {
       this.getList()
+    },
+    changeProductStatus(row, status) {
+      row.status = status
+      this.$message({
+        message: '操作成功',
+        type: "success"
+      })
     }
   }
 }
