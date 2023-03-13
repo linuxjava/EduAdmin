@@ -11,10 +11,13 @@ for (let i = 0; i < count; i++) {
     id: '@increment',
     cover: '@image(200x100)',
     title: '@title(5, 10)',
+    try: '@cparagraph', //试看内容(免费)
+    content: '@cparagraph', //课程内容(收费)
     price: '@integer(1, 100)',
-    subscription: '@integer(1, 1000)',
-    'status|1': ['published', 'draft'],
-    timestamp: +Mock.Random.date('T')
+    'status|1': ['0', '1'],
+    'created_time': '@now',
+    'updated_time': '@now',
+    subscription: '@integer(1, 1000)'
   }))
 }
 
@@ -23,16 +26,15 @@ module.exports = [
     url: '/vue-element-admin/course/list',
     type: 'get',
     response: config => {
-      const {importance, type, title, page = 1, limit = 20, sort} = config.query
+      const {status, title, page = 1, limit = 10, sort} = config.query
+      console.log(config.query)
+      let mockList = List.filter(item => {
+        if (status && item.status !== status) return false
+        if (title && item.title.indexOf(title) < 0) return false
+        return true
+      })
 
-      // let mockList = List.filter(item => {
-      //   if (importance && item.importance !== +importance) return false
-      //   if (type && item.type !== type) return false
-      //   if (title && item.title.indexOf(title) < 0) return false
-      //   return true
-      // })
-
-      let mockList = List
+      // let mockList = List
       if (sort === '-id') {
         mockList = mockList.reverse()
       }
