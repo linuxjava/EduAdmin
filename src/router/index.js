@@ -143,25 +143,25 @@ export const asyncRoutes = [
         path: 'media',
         component: () => import('@/views/course/media'),
         name: 'Media',
-        meta: { title: '图文', icon: 'dashboard' }
+        meta: { title: '图文' }
       },
       {
         path: 'audio',
         component: () => import('@/views/course/audio'),
         name: 'Audio',
-        meta: { title: '音频', icon: 'dashboard' }
+        meta: { title: '音频' }
       },
       {
         path: 'video',
         component: () => import('@/views/course/video'),
         name: 'Video',
-        meta: { title: '视频', icon: 'dashboard' }
+        meta: { title: '视频' }
       },
       {
         path: 'column',
         component: () => import('@/views/course/column'),
         name: 'Column',
-        meta: { title: '专栏', icon: 'dashboard' }
+        meta: { title: '专栏' }
       }
     ]
   },

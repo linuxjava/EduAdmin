@@ -1,7 +1,12 @@
+<!--问题
+1.封面上传问题
+2.表单数据resetFields问题
+-->
 <template>
   <div class="app-container">
+    <!--搜索和新增-->
     <div class="filter-container" style="display: flex;justify-content: space-between">
-      <el-button class="filter-item" type="primary" icon="el-icon-edit">新增</el-button>
+      <el-button class="filter-item" type="primary" icon="el-icon-edit" @click="addMedia">新增</el-button>
       <div>
         <el-select
           v-model="listQuery.status"
@@ -10,7 +15,7 @@
           style="width: 110px;margin-right: 10px"
           class="filter-item"
         >
-          <el-option v-for="(item, k) in statusOptions" :key="k" :label="item" :value="k" />
+          <el-option v-for="(item, k) in statusOptions" :key="k" :label="item" :value="k"/>
         </el-select>
         <el-input
           v-model="listQuery.title"
@@ -21,7 +26,7 @@
         <el-button v-waves class="filter-item" type="primary" icon="el-icon-search" @click="search">搜索</el-button>
       </div>
     </div>
-
+    <!--表格-->
     <el-table
       :data="list"
       border
@@ -31,7 +36,8 @@
       style="width: 100%;"
       @sort-change="sortChange"
     >
-      <el-table-column label="ID" prop="id" sortable="custom" align="center" width="80" :class-name="getSortClass('id')">
+      <el-table-column label="ID" prop="id" sortable="custom" align="center" width="80"
+                       :class-name="getSortClass('id')">
         <template slot-scope="{row}">
           <span>{{ row.id }}</span>
         </template>
@@ -44,7 +50,8 @@
               :src="row.cover"
               style="width: 100px;height: 50px"
             >
-            <div style="display: flex;flex-direction: column;justify-content: space-between;align-items:flex-start;margin-left: 10px">
+            <div
+              style="display: flex;flex-direction: column;justify-content: space-between;align-items:flex-start;margin-left: 10px">
               <span>{{ row.title }}</span>
               <span style="color: red">${{ row.price }}</span>
             </div>
@@ -58,7 +65,7 @@
         </template>
       </el-table-column>
 
-      <el-table-column label="状态" width="100px" align="center">
+      <el-table-column label="状态" width="110px" align="center">
         <template slot-scope="{row}">
           <el-tag :type="row.status | statusFilter">
             {{ statusOptions[row.status] }}
@@ -66,14 +73,14 @@
         </template>
       </el-table-column>
 
-      <el-table-column label="创建时间" width="150px" align="center">
+      <el-table-column label="创建时间" width="180px" align="center">
         <template slot-scope="{row}">
           <span>{{ row.created_time }}</span>
         </template>
       </el-table-column>
 
       <el-table-column label="操作" width="300px" align="center">
-        <template slot-scope="{row}">
+        <template slot-scope="{row, $index}">
           <el-button type="primary" size="mini">
             编辑
           </el-button>
@@ -83,26 +90,86 @@
           <el-button v-if="row.status == 1" size="mini" @click="changeProductStatus(row, 0)">
             下架
           </el-button>
-          <el-button size="mini" type="danger">
-            删除
-          </el-button>
+          <el-popconfirm title="是否要删除该记录?" @onConfirm="handleDelete(row, $index)" style="margin-left: 10px;">
+            <el-button size="mini" type="danger" slot="reference">
+              删除
+            </el-button>
+          </el-popconfirm>
         </template>
       </el-table-column>
     </el-table>
+    <!--分页-->
+    <pagination v-show="total>0" :total="total" :page.sync="listQuery.page" :limit.sync="listQuery.limit"
+                @pagination="getList"/>
+    <!--新增文章-->
+    <el-dialog
+      title="提示"
+      :visible.sync="dialogVisible"
+      fullscreen
+      :before-close="handleClose"
+      @open="openMediaDialog">
+      <el-form :model="productForm" :rules="productRules" ref="productForm" label-width="100px" class="demo-ruleForm">
+        <el-form-item label="标题" required prop="title">
+          <el-input v-model="productForm.title" style="width: 200px"></el-input>
+        </el-form-item>
+        <el-form-item label="封面">
+          <!--图片上传组件-->
+          <el-upload
+            action="https://jsonplaceholder.typicode.com/posts/"
+            list-type="picture-card"
+            :on-preview="handlePictureCardPreview"
+            :on-remove="handleRemove"
+            :on-success="handleUploadSuccess">
+            <i class="el-icon-plus"></i>
+          </el-upload>
+          <!--图片预览Dialog-->
+          <el-dialog :visible.sync="preDialogVisible">
+            <img width="100%" :src="preDialogImageUrl" alt="">
+          </el-dialog>
+        </el-form-item>
 
-    <pagination v-show="total>0" :total="total" :page.sync="listQuery.page" :limit.sync="listQuery.limit" @pagination="getList" />
+        <el-form-item label="试看内容" required prop="try">
+          <template>
+            <tinymce ref="tryTinymce" v-model="productForm.try" :height="300" :width="600" />
+          </template>
+        </el-form-item>
+
+        <el-form-item label="课程内容" required prop="content">
+          <template>
+            <tinymce ref="contentTinymce" v-model="productForm.content" :height="300" :width="600" />
+          </template>
+        </el-form-item>
+
+        <el-form-item label="商品状态" required prop="status">
+          <el-radio-group v-model="productForm.status">
+            <el-radio label="1">上架</el-radio>
+            <el-radio label="0">下架</el-radio>
+          </el-radio-group>
+        </el-form-item>
+
+        <el-form-item label="商品价格" required prop="price">
+          <el-input-number v-model="productForm.price" :min="0" label="商品价格"></el-input-number>
+        </el-form-item>
+      </el-form>
+      <span style="display:block;text-align: center">
+        <el-button @click="cancelMediaForm('productForm')">取 消</el-button>
+        <el-button type="primary" @click="createMedia('productForm')">提 交</el-button>
+      </span>
+    </el-dialog>
+
   </div>
 </template>
 
 <script>
 import waves from '@/directive/waves' // waves directive
 import Pagination from '@/components/Pagination' // secondary package based on el-pagination
-import { fetchList } from '@/api/course'
+import {fetchList, createMedia, updateMedia} from '@/api/course'
+import Tinymce from '@/components/Tinymce'
 
 export default {
   name: 'Media',
-  components: { Pagination },
-  directives: { waves },
+  components: {Pagination, Tinymce},
+  directives: {waves},
   filters: {
     statusFilter(status) {
       const statusMap = {
@@ -126,7 +193,41 @@ export default {
         sort: '+id'
       },
       listLoading: true,
-      statusOptions: ['未上架', '已上架']
+      statusOptions: ['未上架', '已上架'],
+      dialogVisible: false,
+      //添加和修改商品表单数据
+      productForm: {
+        id: undefined,
+        cover: 'https://wpimg.wallstcn.com/f778738c-e4f8-4870-b634-56703b4acafe.gif?imageView2/1/w/80/h/80',
+        title: '',
+        try: '',
+        content: '',
+        price: undefined,
+        //status初始值设置为undefined才能进行校验
+        status: undefined
+      },
+      //添加和修改商品校验规则
+      productRules: {
+        title: [
+          { required: true, message: '请输入商品名称', trigger: 'blur' },
+          { min: 3, max: 5, message: '长度在 3 到 10 个字符', trigger: 'blur' }
+        ],
+        try: [
+          { required: true, message: '请输入课程试看内容', trigger: 'blur' },
+        ],
+        content: [
+          { required: true, message: '请输入课程内容', trigger: 'blur' },
+        ],
+        status: [
+          { required: true, message: '请选择商品状态', trigger: 'change' },
+        ],
+        price: [
+          { required: true, message: '请输入商品价格', trigger: 'change' },
+        ]
+      },
+      newCoverUrl: '',
+      preDialogImageUrl: '',
+      preDialogVisible: false,
     }
   },
   created() {
@@ -142,12 +243,12 @@ export default {
       })
     },
     //Id排序start
-    getSortClass: function(key) {
+    getSortClass: function (key) {
       const sort = this.listQuery.sort
       return sort === `+${key}` ? 'ascending' : 'descending'
     },
     sortChange(data) {
-      const { prop, order } = data
+      const {prop, order} = data
       if (prop === 'id') {
         this.sortByID(order)
       }
@@ -164,15 +265,95 @@ export default {
       this.listQuery.page = 1
       this.getList()
     },//Id排序end
+    //搜索
     search() {
       this.getList()
     },
+    //改变商品状态
     changeProductStatus(row, status) {
       row.status = status
       this.$message({
         message: '操作成功',
         type: "success"
       })
+    },
+    //删除记录
+    handleDelete(row, index) {
+      this.$notify({
+        title: '提示',
+        message: '删除成功',
+        type: 'success',
+        duration: 2000
+      })
+      this.list.splice(index, 1)
+    },
+    //新增media
+    addMedia() {
+      this.dialogVisible = true
+    },
+    handleClose(done) {
+    },
+    submitForm(formName) {
+      this.$refs[formName].validate((valid) => {
+        if (valid) {
+          alert('submit!');
+        } else {
+          console.log('error submit!!');
+          return false;
+        }
+      });
+    },
+    resetForm(formName) {
+      this.$refs[formName].resetFields();
+    },
+    //删除图片
+    handleRemove(file, fileList) {
+      console.log(file, fileList);
+    },
+    //预览图片
+    handlePictureCardPreview(file) {
+      this.preDialogImageUrl = file.url;
+      this.preDialogVisible = true;
+    },
+    //图片上传成功
+    handleUploadSuccess(response, file, fileList){
+      console.log(response, file, fileList)
+    },
+    //打开新增文章对话框
+    openMediaDialog() {
+      //清除表单内容
+      this.$refs['productForm'].resetFields();
+      //清空富文本内容
+      this.$refs.tryTinymce.setContent('')
+      this.$refs.contentTinymce.setContent('')
+    },
+    //新增文章
+    createMedia(formName){
+      this.$refs[formName].validate((valid) => {
+        if(valid) {
+          this.productForm.id = parseInt(Math.random() * 100) + 1024
+          let time = new Date();
+          let timeInfo = (time.getFullYear()+'-'+time.getMonth()+'-'+time.getDate()+' '+time.getHours()+':'+time.getMinutes()+':'+time.getSeconds())
+          this.productForm.created_time = timeInfo
+          this.productForm.updated_time = timeInfo
+          this.productForm.subscription = 0
+          console.log(this.productForm)
+          createMedia(this.productForm).then(() => {
+            this.list.unshift(this.productForm)
+            this.dialogVisible = false;
+            this.$notify({
+              message: '',
+              type: "success",
+              title: '成功',
+              duration: 2000
+            })
+          })
+        }
+      })
+    },
+    //取消Media对话框
+    cancelMediaForm(formName) {
+      this.dialogVisible = false;
     }
   }
 }
