@@ -79,9 +79,15 @@
         </template>
       </el-table-column>
 
+      <el-table-column label="更新时间" width="180px" align="center">
+        <template slot-scope="{row}">
+          <span>{{ row.updated_time }}</span>
+        </template>
+      </el-table-column>
+
       <el-table-column label="操作" width="300px" align="center">
         <template slot-scope="{row, $index}">
-          <el-button type="primary" size="mini">
+          <el-button type="primary" size="mini" @click="editMedia(row)">
             编辑
           </el-button>
           <el-button v-if="row.status == 0" size="mini" type="success" @click="changeProductStatus(row, 1)">
@@ -107,7 +113,7 @@
       :visible.sync="dialogVisible"
       fullscreen
       :before-close="handleClose"
-      @open="openMediaDialog">
+      @opened="openMediaDialog">
       <el-form :model="productForm" :rules="productRules" ref="productForm" label-width="100px" class="demo-ruleForm">
         <el-form-item label="标题" required prop="title">
           <el-input v-model="productForm.title" style="width: 200px"></el-input>
@@ -153,7 +159,7 @@
       </el-form>
       <span style="display:block;text-align: center">
         <el-button @click="cancelMediaForm('productForm')">取 消</el-button>
-        <el-button type="primary" @click="createMedia('productForm')">提 交</el-button>
+        <el-button type="primary" @click="dialogStatus === 'create' ? createMedia('productForm') : updateMedia('productForm')">提 交</el-button>
       </span>
     </el-dialog>
 
@@ -165,6 +171,7 @@ import waves from '@/directive/waves' // waves directive
 import Pagination from '@/components/Pagination' // secondary package based on el-pagination
 import {fetchList, createMedia, updateMedia} from '@/api/course'
 import Tinymce from '@/components/Tinymce'
+import {getYmdHmsTimeStr} from '@/utils'
 
 export default {
   name: 'Media',
@@ -195,6 +202,7 @@ export default {
       listLoading: true,
       statusOptions: ['未上架', '已上架'],
       dialogVisible: false,
+      dialogStatus: undefined,
       //添加和修改商品表单数据
       productForm: {
         id: undefined,
@@ -230,10 +238,29 @@ export default {
       preDialogVisible: false,
     }
   },
+  mounted() {
+    //1解决全屏dialog时，浏览器返回问题
+    if (window.history && window.history.pushState) {
+      history.pushState(null, null, document.URL);
+      window.addEventListener('popstate', this.goBack, false);
+    }
+  },
   created() {
     this.getList()
   },
+  destroyed(){
+    //2解决全屏dialog时，浏览器返回问题
+    window.removeEventListener('popstate', this.goBack, false);//false阻止默认事件
+  },
   methods: {
+    goBack() {
+      //3解决全屏dialog时，浏览器返回问题
+      if(this.dialogVisible) {
+        this.dialogVisible = false;
+      }else {
+        this.$router.replace({path: '/'})
+      }
+    },
     getList() {
       this.listLoading = true
       fetchList(this.listQuery).then(response => {
@@ -289,6 +316,7 @@ export default {
     },
     //新增media
     addMedia() {
+      this.dialogStatus = 'create'
       this.dialogVisible = true
     },
     handleClose(done) {
@@ -321,23 +349,24 @@ export default {
     },
     //打开新增文章对话框
     openMediaDialog() {
-      //清除表单内容
-      this.$refs['productForm'].resetFields();
-      //清空富文本内容
-      this.$refs.tryTinymce.setContent('')
-      this.$refs.contentTinymce.setContent('')
+      //需要使用opened事件，不能是open事件，因为open事件时$refs还未创建
+      if(this.dialogStatus === 'create') {
+        //如果是创建media则清空上次数据
+        //清除表单内容
+        this.$refs['productForm'].resetFields();
+        //清空富文本内容
+        this.$refs.tryTinymce.setContent('')
+        this.$refs.contentTinymce.setContent('')
+      }
     },
     //新增文章
     createMedia(formName){
       this.$refs[formName].validate((valid) => {
         if(valid) {
           this.productForm.id = parseInt(Math.random() * 100) + 1024
-          let time = new Date();
-          let timeInfo = (time.getFullYear()+'-'+time.getMonth()+'-'+time.getDate()+' '+time.getHours()+':'+time.getMinutes()+':'+time.getSeconds())
-          this.productForm.created_time = timeInfo
-          this.productForm.updated_time = timeInfo
+          this.productForm.created_time = getYmdHmsTimeStr()
+          this.productForm.updated_time = getYmdHmsTimeStr()
           this.productForm.subscription = 0
-          console.log(this.productForm)
           createMedia(this.productForm).then(() => {
             this.list.unshift(this.productForm)
             this.dialogVisible = false;
@@ -354,6 +383,32 @@ export default {
     //取消Media对话框
     cancelMediaForm(formName) {
       this.dialogVisible = false;
+    },
+    //编辑media
+    editMedia(row) {
+      this.dialogStatus = 'edit'
+      this.productForm = Object.assign({}, row)
+      this.dialogVisible = true;
+    },
+    //更新media
+    updateMedia(formName) {
+      this.$refs[formName].validate((valid) => {
+        if(valid) {
+          let temp = Object.assign({}, this.productForm)
+          temp.updated_time = getYmdHmsTimeStr()
+          updateMedia(temp).then(() => {
+            let index = this.list.findIndex(item => item.id === temp.id)
+            this.list.splice(index, 1, temp)
+            this.dialogVisible = false
+            this.$notify({
+              type: "success",
+              title: '成功',
+              message: '更新成功',
+              duration: 2000
+            })
+          })
+        }
+      })
     }
   }
 }

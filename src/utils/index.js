@@ -3,6 +3,14 @@
  */
 
 /**
+ * 返回2023-03-14 09:58:16格式字符串
+ * @returns {string|null}
+ */
+export function getYmdHmsTimeStr(){
+  return parseTime(Date.parse(new Date()), '{y}-{m}-{d} {h}:{i}:{s}')
+}
+
+/**
  * Parse the time to string
  * @param {(Object|string|number)} time
  * @param {string} cFormat
