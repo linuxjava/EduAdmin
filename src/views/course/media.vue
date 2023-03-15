@@ -5,7 +5,7 @@
   <div class="app-container">
     <!--搜索和新增-->
     <div class="filter-container" style="display: flex;justify-content: space-between">
-      <el-button class="filter-item" type="primary" icon="el-icon-edit" @click="showDialog">新增</el-button>
+      <el-button class="filter-item" type="primary" icon="el-icon-edit" @click="showDialog">新增图文</el-button>
       <div>
         <el-select
           v-model="listQuery.status"
@@ -239,7 +239,6 @@ export default {
   mounted() {
     //1解决全屏dialog时，浏览器返回问题
     if (window.history && window.history.pushState) {
-      console.log('mounted')
       history.pushState(null, null, document.URL);
       window.addEventListener('popstate', this.goBack, false);
     }
@@ -248,13 +247,11 @@ export default {
     this.getList()
   },
   destroyed() {
-    console.log('destroyed')
     //2解决全屏dialog时，浏览器返回问题
     window.removeEventListener('popstate', this.goBack, false);//false阻止默认事件
   },
   methods: {
     goBack() {
-      console.log('this.dialogVisible', this.dialogVisible)
       //3解决全屏dialog时，浏览器返回问题
       if (this.dialogVisible) {
         this.dialogVisible = false;
