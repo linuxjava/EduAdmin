@@ -1,12 +1,11 @@
 <!--问题
 1.封面上传问题
-2.表单数据resetFields问题
 -->
 <template>
   <div class="app-container">
     <!--搜索和新增-->
     <div class="filter-container" style="display: flex;justify-content: space-between">
-      <el-button class="filter-item" type="primary" icon="el-icon-edit" @click="addMedia">新增</el-button>
+      <el-button class="filter-item" type="primary" icon="el-icon-edit" @click="showDialog">新增</el-button>
       <div>
         <el-select
           v-model="listQuery.status"
@@ -34,10 +33,9 @@
       fit
       highlight-current-row
       style="width: 100%;"
-      @sort-change="sortChange"
-    >
-      <el-table-column label="ID" prop="id" sortable="custom" align="center" width="80"
-                       :class-name="getSortClass('id')">
+      @sort-change="sortChange">
+      <!--      :class-name="getSortClass('id')"对排序视乎没有作用-->
+      <el-table-column label="ID" prop="id" sortable="custom" align="center" width="80">
         <template slot-scope="{row}">
           <span>{{ row.id }}</span>
         </template>
@@ -112,8 +110,7 @@
       title="提示"
       :visible.sync="dialogVisible"
       fullscreen
-      :before-close="handleClose"
-      @opened="openMediaDialog">
+      @opened="openedDialog">
       <el-form :model="productForm" :rules="productRules" ref="productForm" label-width="100px" class="demo-ruleForm">
         <el-form-item label="标题" required prop="title">
           <el-input v-model="productForm.title" style="width: 200px"></el-input>
@@ -136,13 +133,13 @@
 
         <el-form-item label="试看内容" required prop="try">
           <template>
-            <tinymce ref="tryTinymce" v-model="productForm.try" :height="300" :width="600" />
+            <tinymce ref="tryTinymce" v-model="productForm.try" :height="300" :width="600"/>
           </template>
         </el-form-item>
 
         <el-form-item label="课程内容" required prop="content">
           <template>
-            <tinymce ref="contentTinymce" v-model="productForm.content" :height="300" :width="600" />
+            <tinymce ref="contentTinymce" v-model="productForm.content" :height="300" :width="600"/>
           </template>
         </el-form-item>
 
@@ -159,7 +156,8 @@
       </el-form>
       <span style="display:block;text-align: center">
         <el-button @click="cancelMediaForm('productForm')">取 消</el-button>
-        <el-button type="primary" @click="dialogStatus === 'create' ? createMedia('productForm') : updateMedia('productForm')">提 交</el-button>
+        <el-button type="primary"
+                   @click="dialogStatus === 'create' ? createMedia('productForm') : updateMedia('productForm')">提 交</el-button>
       </span>
     </el-dialog>
 
@@ -169,7 +167,7 @@
 <script>
 import waves from '@/directive/waves' // waves directive
 import Pagination from '@/components/Pagination' // secondary package based on el-pagination
-import {fetchList, createMedia, updateMedia} from '@/api/course'
+import {fetchList, createMedia, updateMedia} from '@/api/media'
 import Tinymce from '@/components/Tinymce'
 import {getYmdHmsTimeStr} from '@/utils'
 
@@ -217,20 +215,20 @@ export default {
       //添加和修改商品校验规则
       productRules: {
         title: [
-          { required: true, message: '请输入商品名称', trigger: 'blur' },
-          { min: 3, max: 5, message: '长度在 3 到 10 个字符', trigger: 'blur' }
+          {required: true, message: '请输入商品名称', trigger: 'blur'},
+          {min: 3, max: 5, message: '长度在 3 到 10 个字符', trigger: 'blur'}
         ],
         try: [
-          { required: true, message: '请输入课程试看内容', trigger: 'blur' },
+          {required: true, message: '请输入课程试看内容', trigger: 'blur'},
         ],
         content: [
-          { required: true, message: '请输入课程内容', trigger: 'blur' },
+          {required: true, message: '请输入课程内容', trigger: 'blur'},
         ],
         status: [
-          { required: true, message: '请选择商品状态', trigger: 'change' },
+          {required: true, message: '请选择商品状态', trigger: 'change'},
         ],
         price: [
-          { required: true, message: '请输入商品价格', trigger: 'change' },
+          {required: true, message: '请输入商品价格', trigger: 'change'},
         ]
       },
       newCoverUrl: '',
@@ -241,6 +239,7 @@ export default {
   mounted() {
     //1解决全屏dialog时，浏览器返回问题
     if (window.history && window.history.pushState) {
+      console.log('mounted')
       history.pushState(null, null, document.URL);
       window.addEventListener('popstate', this.goBack, false);
     }
@@ -248,16 +247,18 @@ export default {
   created() {
     this.getList()
   },
-  destroyed(){
+  destroyed() {
+    console.log('destroyed')
     //2解决全屏dialog时，浏览器返回问题
     window.removeEventListener('popstate', this.goBack, false);//false阻止默认事件
   },
   methods: {
     goBack() {
+      console.log('this.dialogVisible', this.dialogVisible)
       //3解决全屏dialog时，浏览器返回问题
-      if(this.dialogVisible) {
+      if (this.dialogVisible) {
         this.dialogVisible = false;
-      }else {
+      } else {
         this.$router.replace({path: '/'})
       }
     },
@@ -276,6 +277,7 @@ export default {
     },
     sortChange(data) {
       const {prop, order} = data
+      console.log('order', order)
       if (prop === 'id') {
         this.sortByID(order)
       }
@@ -315,24 +317,9 @@ export default {
       this.list.splice(index, 1)
     },
     //新增media
-    addMedia() {
+    showDialog() {
       this.dialogStatus = 'create'
       this.dialogVisible = true
-    },
-    handleClose(done) {
-    },
-    submitForm(formName) {
-      this.$refs[formName].validate((valid) => {
-        if (valid) {
-          alert('submit!');
-        } else {
-          console.log('error submit!!');
-          return false;
-        }
-      });
-    },
-    resetForm(formName) {
-      this.$refs[formName].resetFields();
     },
     //删除图片
     handleRemove(file, fileList) {
@@ -344,13 +331,13 @@ export default {
       this.preDialogVisible = true;
     },
     //图片上传成功
-    handleUploadSuccess(response, file, fileList){
+    handleUploadSuccess(response, file, fileList) {
       console.log(response, file, fileList)
     },
     //打开新增文章对话框
-    openMediaDialog() {
+    openedDialog() {
       //需要使用opened事件，不能是open事件，因为open事件时$refs还未创建
-      if(this.dialogStatus === 'create') {
+      if (this.dialogStatus === 'create') {
         //如果是创建media则清空上次数据
         //清除表单内容
         this.$refs['productForm'].resetFields();
@@ -360,9 +347,9 @@ export default {
       }
     },
     //新增文章
-    createMedia(formName){
+    createMedia(formName) {
       this.$refs[formName].validate((valid) => {
-        if(valid) {
+        if (valid) {
           this.productForm.id = parseInt(Math.random() * 100) + 1024
           this.productForm.created_time = getYmdHmsTimeStr()
           this.productForm.updated_time = getYmdHmsTimeStr()
@@ -393,7 +380,7 @@ export default {
     //更新media
     updateMedia(formName) {
       this.$refs[formName].validate((valid) => {
-        if(valid) {
+        if (valid) {
           let temp = Object.assign({}, this.productForm)
           temp.updated_time = getYmdHmsTimeStr()
           updateMedia(temp).then(() => {

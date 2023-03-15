@@ -20,7 +20,7 @@ for (let i = 0; i < count; i++) {
 
 module.exports = [
   {
-    url: '/vue-element-admin/course/list',
+    url: '/vue-element-admin/media/list',
     type: 'get',
     response: config => {
       const {status, title, page = 1, limit = 10, sort} = config.query
@@ -48,7 +48,7 @@ module.exports = [
     }
   },
   {
-    url: '/vue-element-admin/course/create',
+    url: '/vue-element-admin/media/create',
     type: 'post',
     response: _ => {
       return {
@@ -58,7 +58,7 @@ module.exports = [
     }
   },
   {
-    url: '/vue-element-admin/course/update',
+    url: '/vue-element-admin/media/update',
     type: 'post',
     response: _ => {
       return {

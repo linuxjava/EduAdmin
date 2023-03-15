@@ -2,7 +2,7 @@ import request from '@/utils/request'
 
 export function fetchList(query) {
   return request({
-    url: '/vue-element-admin/course/list',
+    url: '/vue-element-admin/media/list',
     method: 'get',
     params: query
   })
@@ -10,7 +10,7 @@ export function fetchList(query) {
 
 export function createMedia(data) {
   return request({
-    url: '/vue-element-admin/course/create',
+    url: '/vue-element-admin/media/create',
     method: 'post',
     data
   })
@@ -18,7 +18,7 @@ export function createMedia(data) {
 
 export function updateMedia(data) {
   return request({
-    url: '/vue-element-admin/course/update',
+    url: '/vue-element-admin/media/update',
     method: 'post',
     data
   })
