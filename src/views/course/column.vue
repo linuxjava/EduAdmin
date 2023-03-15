@@ -5,7 +5,7 @@
   <div class="app-container">
     <!--搜索和新增-->
     <div class="filter-container" style="display: flex;justify-content: space-between">
-      <el-button class="filter-item" type="primary" icon="el-icon-edit" @click="showDialog">新增视频</el-button>
+      <el-button class="filter-item" type="primary" icon="el-icon-edit" @click="showDialog">新增专栏</el-button>
       <div>
         <el-select
           v-model="listQuery.status"
@@ -50,10 +50,18 @@
             >
             <div
               style="display: flex;flex-direction: column;justify-content: space-between;align-items:flex-start;margin-left: 10px">
-              <span>{{ row.title }}</span>
+              <span style="color:#0485fd;">{{ row.title }}</span>
               <span style="color: red">${{ row.price }}</span>
             </div>
           </div>
+        </template>
+      </el-table-column>
+
+      <el-table-column label="更新状态" width="110px" align="center">
+        <template slot-scope="{row}">
+          <el-tag :type="row.updateStatus | statusFilter">
+            {{ updateStatusOptions[row.updateStatus] }}
+          </el-tag>
         </template>
       </el-table-column>
 
@@ -85,14 +93,17 @@
 
       <el-table-column label="操作" width="300px" align="center">
         <template slot-scope="{row, $index}">
-          <el-button type="primary" size="mini" @click="editVideo(row)">
-            编辑
+          <el-button size="mini" type="info" @click="openDetail">
+            目录
           </el-button>
           <el-button v-if="row.status == 0" size="mini" type="success" @click="changeProductStatus(row, 1)">
             上架
           </el-button>
           <el-button v-if="row.status == 1" size="mini" @click="changeProductStatus(row, 0)">
             下架
+          </el-button>
+          <el-button type="primary" size="mini" @click="editColumn(row)">
+            编辑
           </el-button>
           <el-popconfirm title="是否要删除该记录?" @onConfirm="handleDelete(row, $index)" style="margin-left: 10px;">
             <el-button size="mini" type="danger" slot="reference">
@@ -112,7 +123,7 @@
       fullscreen
       @opened="openedDialog">
       <el-form :model="productForm" :rules="productRules" ref="productForm" label-width="100px" class="demo-ruleForm">
-        <el-form-item label="标题" required prop="title">
+        <el-form-item ref="title" label="标题" required prop="title">
           <el-input v-model="productForm.title" style="width: 200px"></el-input>
         </el-form-item>
         <el-form-item label="封面">
@@ -133,22 +144,19 @@
 
         <el-form-item label="课程介绍" required prop="introduce">
           <template>
-            <tinymce ref="introduceTinymce" v-model="productForm.introduce" :height="300" :width="600"/>
+            <el-input
+              type="textarea"
+              style="width: 600px"
+              :rows="3"
+              placeholder="请输入课程介绍"
+              v-model="productForm.introduce">
+            </el-input>
           </template>
         </el-form-item>
 
         <el-form-item label="课程内容" required prop="content">
           <template>
-            <el-upload
-              action="https://jsonplaceholder.typicode.com/posts/"
-              :on-remove="handleVideoRemove"
-              :limit="1"
-              style="width: 600px"
-              accept=".mp4,.avi,.wmv,.mov,.flv,.rmvb,.3gp,.m4v,.mkv"
-              :file-list="productForm.fileList">
-              <el-button size="small" type="primary">上传视频</el-button>
-              <div slot="tip" class="el-upload__tip">支持mp4,avi,wmv,mov,flv,rmvb,3gp,m4v,mkv，且不超过100M</div>
-            </el-upload>
+            <tinymce ref="contentTinymce" v-model="productForm.content" :height="300" :width="600"/>
           </template>
         </el-form-item>
 
@@ -159,6 +167,13 @@
           </el-radio-group>
         </el-form-item>
 
+        <el-form-item label="更新状态" required prop="updateStatus">
+          <el-radio-group v-model="productForm.updateStatus">
+            <el-radio label="1">已完结</el-radio>
+            <el-radio label="0">未完结</el-radio>
+          </el-radio-group>
+        </el-form-item>
+
         <el-form-item label="商品价格" required prop="price">
           <el-input-number v-model="productForm.price" :min="0" label="商品价格"></el-input-number>
         </el-form-item>
@@ -166,7 +181,7 @@
       <span style="display:block;text-align: center">
         <el-button @click="cancelForm('productForm')">取 消</el-button>
         <el-button type="primary"
-                   @click="dialogStatus === 'create' ? createVideo('productForm') : updateVideo('productForm')">提 交</el-button>
+                   @click="dialogStatus === 'create' ? createColumn('productForm') : updateColumn('productForm')">提 交</el-button>
       </span>
     </el-dialog>
 
@@ -176,7 +191,7 @@
 <script>
 import waves from '@/directive/waves' // waves directive
 import Pagination from '@/components/Pagination' // secondary package based on el-pagination
-import {fetchList, createVideo, updateVideo} from '@/api/column'
+import {fetchList, createColumn, updateColumn} from '@/api/column'
 import Tinymce from '@/components/Tinymce'
 import {getYmdHmsTimeStr} from '@/utils'
 
@@ -207,6 +222,7 @@ export default {
         sort: '+id'
       },
       listLoading: true,
+      updateStatusOptions: ['未完结', '已完结'],
       statusOptions: ['未上架', '已上架'],
       dialogVisible: false,
       dialogStatus: undefined,
@@ -216,9 +232,10 @@ export default {
         cover: 'https://wpimg.wallstcn.com/f778738c-e4f8-4870-b634-56703b4acafe.gif?imageView2/1/w/80/h/80',
         title: '',
         introduce: '',
-        fileList: [],
+        content: '',
         price: undefined,
         //status初始值设置为undefined才能进行校验
+        updateStatus: undefined,
         status: undefined
       },
       //添加和修改商品校验规则
@@ -231,10 +248,13 @@ export default {
           {required: true, message: '请输入课程介绍', trigger: 'blur'},
         ],
         content: [
-          {required: true, message: '请上传课程视频', trigger: 'blur'},
+          {required: true, message: '请输入课程内容', trigger: 'blur'},
         ],
         status: [
           {required: true, message: '请选择商品状态', trigger: 'change'},
+        ],
+        updateStatus: [
+          {required: true, message: '请选择更新状态', trigger: 'change'},
         ],
         price: [
           {required: true, message: '请输入商品价格', trigger: 'change'},
@@ -325,10 +345,6 @@ export default {
     handleUploadSuccess(response, file, fileList) {
       console.log(response, file, fileList)
     },
-    //音频删除
-    handleVideoRemove(file, fileList) {
-      return this.$confirm(`确定移除 ${ file.name }？`);
-    },
     //删除记录
     handleDelete(row, index) {
       this.$notify({
@@ -356,18 +372,18 @@ export default {
         //清除表单内容
         this.$refs['productForm'].resetFields();
         //清空富文本内容
-        this.$refs.introduceTinymce.setContent('')
+        this.$refs.contentTinymce.setContent('')
       }
     },
     //新增文章
-    createVideo(formName) {
+    createColumn(formName) {
       this.$refs[formName].validate((valid) => {
         if (valid) {
           this.productForm.id = parseInt(Math.random() * 100) + 1024
           this.productForm.created_time = getYmdHmsTimeStr()
           this.productForm.updated_time = getYmdHmsTimeStr()
           this.productForm.subscription = 0
-          createVideo(this.productForm).then(() => {
+          createColumn(this.productForm).then(() => {
             this.list.unshift(this.productForm)
             this.dialogVisible = false;
             this.$notify({
@@ -385,18 +401,18 @@ export default {
       this.dialogVisible = false;
     },
     //编辑
-    editVideo(row) {
+    editColumn(row) {
       this.dialogStatus = 'edit'
       this.productForm = Object.assign({}, row)
       this.dialogVisible = true;
     },
     //更新
-    updateVideo(formName) {
+    updateColumn(formName) {
       this.$refs[formName].validate((valid) => {
         if (valid) {
           let temp = Object.assign({}, this.productForm)
           temp.updated_time = getYmdHmsTimeStr()
-          updateVideo(temp).then(() => {
+          updateColumn(temp).then(() => {
             let index = this.list.findIndex(item => item.id === temp.id)
             this.list.splice(index, 1, temp)
             this.dialogVisible = false
@@ -408,6 +424,11 @@ export default {
             })
           })
         }
+      })
+    },
+    openDetail() {
+      this.$router.push({
+        name: 'ColumnDetail'
       })
     }
   }

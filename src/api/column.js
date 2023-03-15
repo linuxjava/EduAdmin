@@ -8,7 +8,7 @@ export function fetchList(query) {
   })
 }
 
-export function createVideo(data) {
+export function createColumn(data) {
   return request({
     url: '/vue-element-admin/column/create',
     method: 'post',
@@ -16,7 +16,7 @@ export function createVideo(data) {
   })
 }
 
-export function updateVideo(data) {
+export function updateColumn(data) {
   return request({
     url: '/vue-element-admin/column/update',
     method: 'post',

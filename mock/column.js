@@ -9,7 +9,9 @@ for (let i = 0; i < count; i++) {
     cover: '@image(200x100)',
     title: '@ctitle(5, 10)',
     introduce: '@cparagraph', //课程介绍
+    content: '@cparagraph',
     price: '@integer(1, 100)',
+    'updateStatus|1': ['0', '1'],
     'status|1': ['0', '1'],
     'created_time': '@now',
     'updated_time': '@now',

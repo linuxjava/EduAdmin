@@ -50,7 +50,7 @@
             >
             <div
               style="display: flex;flex-direction: column;justify-content: space-between;align-items:flex-start;margin-left: 10px">
-              <span>{{ row.title }}</span>
+              <span style="color:#0485fd;">{{ row.title }}</span>
               <span style="color: red">${{ row.price }}</span>
             </div>
           </div>
