@@ -41,7 +41,7 @@
         </template>
       </el-table-column>
 
-      <el-table-column label="内容" min-width="150px" align="center">
+      <el-table-column label="标题" min-width="150px" align="center">
         <template slot-scope="{row}">
           <div style="display: flex">
             <img

@@ -7,6 +7,8 @@ const article = require('./article')
 const search = require('./remote-search')
 const media = require('./media')
 const audio = require('./audio')
+const video = require('./video')
+const column = require('./column')
 
 const mocks = [
   ...user,
@@ -14,7 +16,9 @@ const mocks = [
   ...article,
   ...search,
   ...media,
-  ...audio
+  ...audio,
+  ...video,
+  ...column
 ]
 
 // for front mock

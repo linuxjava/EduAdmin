@@ -41,7 +41,7 @@
         </template>
       </el-table-column>
 
-      <el-table-column label="内容" min-width="150px" align="center">
+      <el-table-column label="标题" min-width="150px" align="center">
         <template slot-scope="{row}">
           <div style="display: flex">
             <img
@@ -144,9 +144,10 @@
               :on-remove="handleAudioRemove"
               :limit="1"
               style="width: 600px"
+              accept=".mp3,.m4a"
               :file-list="productForm.fileList">
               <el-button size="small" type="primary">上传音频</el-button>
-              <div slot="tip" class="el-upload__tip">只能上传mp4文件，且不超过100M</div>
+              <div slot="tip" class="el-upload__tip">格式支持mp3、m4a文件，且不超过100M</div>
             </el-upload>
           </template>
         </el-form-item>
