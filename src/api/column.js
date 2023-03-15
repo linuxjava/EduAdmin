@@ -23,3 +23,11 @@ export function updateColumn(data) {
     data
   })
 }
+
+export function fetchDetail(query) {
+  return request({
+    url: '/vue-element-admin/column/detail',
+    method: 'get',
+    params: query
+  })
+}

@@ -25,14 +25,12 @@ module.exports = [
     type: 'get',
     response: config => {
       const {status, title, page = 1, limit = 10, sort} = config.query
-      console.log(config.query)
       let mockList = List.filter(item => {
         if (status && item.status !== status) return false
         if (title && item.title.indexOf(title) < 0) return false
         return true
       })
 
-      // let mockList = List
       if (sort === '-id') {
         mockList = mockList.reverse()
       }
@@ -65,6 +63,20 @@ module.exports = [
       return {
         code: 20000,
         data: 'success'
+      }
+    }
+  },
+  {
+    url: '/vue-element-admin/column/detail',
+    type: 'get',
+    response: config => {
+      const {id} = config.query
+      //这里不能写===，会找不到
+      const data = List.find(item => item.id == id)
+
+      return {
+        code: 20000,
+        data
       }
     }
   }

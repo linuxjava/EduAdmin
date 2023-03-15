@@ -93,7 +93,7 @@
 
       <el-table-column label="操作" width="300px" align="center">
         <template slot-scope="{row, $index}">
-          <el-button size="mini" type="info" @click="openDetail">
+          <el-button size="mini" type="info" @click="openDetail(row)">
             目录
           </el-button>
           <el-button v-if="row.status == 0" size="mini" type="success" @click="changeProductStatus(row, 1)">
@@ -170,7 +170,7 @@
         <el-form-item label="更新状态" required prop="updateStatus">
           <el-radio-group v-model="productForm.updateStatus">
             <el-radio label="1">已完结</el-radio>
-            <el-radio label="0">未完结</el-radio>
+            <el-radio label="0">连载中</el-radio>
           </el-radio-group>
         </el-form-item>
 
@@ -222,7 +222,7 @@ export default {
         sort: '+id'
       },
       listLoading: true,
-      updateStatusOptions: ['未完结', '已完结'],
+      updateStatusOptions: ['连载中', '已完结'],
       statusOptions: ['未上架', '已上架'],
       dialogVisible: false,
       dialogStatus: undefined,
@@ -426,9 +426,12 @@ export default {
         }
       })
     },
-    openDetail() {
+    openDetail(row) {
       this.$router.push({
-        name: 'ColumnDetail'
+        name: 'ColumnDetail',
+        query: {
+          id: row.id
+        }
       })
     }
   }
