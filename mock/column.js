@@ -11,8 +11,8 @@ for (let i = 0; i < count; i++) {
     introduce: '@cparagraph', //课程介绍
     content: '@cparagraph',
     price: '@integer(1, 100)',
-    'updateStatus|1': ['0', '1'],
-    'status|1': ['0', '1'],
+    'updateStatus|1': [0, 1],
+    'status|1': [0, 1],
     'created_time': '@now',
     'updated_time': '@now',
     subscription: '@integer(1, 1000)'
@@ -77,6 +77,38 @@ module.exports = [
       return {
         code: 20000,
         data
+      }
+    }
+  },
+  {
+    url: '/vue-element-admin/column/status',
+    type: 'post',
+    response: config => {
+      let {id, status} = config.body
+      List.find(item => {
+        if(item.id === id) {
+          item.status = status
+        }
+      })
+      return {
+        code: 20000,
+        data: {},
+      }
+    }
+  },
+  {
+    url: '/vue-element-admin/column/is-end',
+    type: 'post',
+    response: config => {
+      let {id, status} = config.body
+      List.find(item => {
+        if(item.id === id) {
+          item.updateStatus = status
+        }
+      })
+      return {
+        code: 20000,
+        data: {},
       }
     }
   }

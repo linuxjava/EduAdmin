@@ -31,3 +31,19 @@ export function fetchDetail(query) {
     params: query
   })
 }
+
+export function updateStatus(data) {
+  return request({
+    url: '/vue-element-admin/column/status',
+    method: 'post',
+    data
+  })
+}
+
+export function updateIsEnd(data) {
+  return request({
+    url: '/vue-element-admin/column/is-end',
+    method: 'post',
+    data
+  })
+}
