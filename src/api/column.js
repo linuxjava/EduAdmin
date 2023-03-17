@@ -47,3 +47,23 @@ export function updateIsEnd(data) {
     data
   })
 }
+
+export function fetchColumnCourse(query) {
+  return get('/vue-element-admin/column/course', query)
+}
+
+function get(url, query) {
+  return request({
+    url: url,
+    method: 'get',
+    params: query
+  })
+}
+
+function post(url, data) {
+  return request({
+    url: url,
+    method: 'post',
+    data
+  })
+}

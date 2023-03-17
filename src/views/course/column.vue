@@ -115,7 +115,7 @@
     </el-table>
     <!--分页-->
     <pagination v-show="total>0" :total="total" :page.sync="listQuery.page" :limit.sync="listQuery.limit"
-                @pagination="getList"/>
+                @pagination="getList" style="padding-left: 0px"/>
     <!--新增文章-->
     <el-dialog
       title="提示"

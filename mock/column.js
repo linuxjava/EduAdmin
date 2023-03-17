@@ -1,6 +1,7 @@
 const Mock = require('mockjs')
 
 const List = []
+const columnCourse = []
 const count = 100
 
 for (let i = 0; i < count; i++) {
@@ -8,7 +9,7 @@ for (let i = 0; i < count; i++) {
     id: '@increment',
     cover: '@image(200x100)',
     title: '@ctitle(5, 10)',
-    introduce: '@cparagraph', //课程介绍
+    introduce: '@cparagraph',
     content: '@cparagraph',
     price: '@integer(1, 100)',
     'updateStatus|1': [0, 1],
@@ -18,6 +19,25 @@ for (let i = 0; i < count; i++) {
     subscription: '@integer(1, 1000)'
   }))
 }
+
+for (let i = 0; i < count; i++) {
+  columnCourse.push(Mock.mock({
+    id: '@increment',
+    cover: '@image(200x100)',
+    title: '@ctitle(5, 10)',
+    'courseType|1': [0, 1, 2],
+    visits: '@integer(1, 1000)',
+    // introduce: '@cparagraph', //课程介绍
+    // content: '@cparagraph',
+    price: '@integer(1, 100)',
+    // 'updateStatus|1': [0, 1],
+    'status|1': [0, 1],
+    // 'created_time': '@now',
+    // 'updated_time': '@now',
+    // subscription: '@integer(1, 1000)'
+  }))
+}
+
 
 module.exports = [
   {
@@ -109,6 +129,28 @@ module.exports = [
       return {
         code: 20000,
         data: {},
+      }
+    }
+  },
+  {
+    url: '/vue-element-admin/column/course',
+    type: 'get',
+    response: config => {
+      const {title, status, page = 1, limit = 10} = config.query
+      let mockList = columnCourse.filter(item => {
+        if (status && item.status != status) return false
+        if (title && item.title.indexOf(title) < 0) return false
+        return true
+      })
+
+      const pageList = mockList.filter((item, index) => index < limit * page && index >= limit * (page - 1))
+
+      return {
+        code: 20000,
+        data : {
+          data: pageList,
+          total: mockList.length
+        }
       }
     }
   }
