@@ -46,7 +46,7 @@ module.exports = [
     response: config => {
       const {status, title, page = 1, limit = 10, sort} = config.query
       let mockList = List.filter(item => {
-        if (status && item.status !== status) return false
+        if (status && item.status != status) return false
         if (title && item.title.indexOf(title) < 0) return false
         return true
       })

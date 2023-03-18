@@ -13,7 +13,7 @@
           clearable
           style="width: 110px;margin-right: 10px"
           class="filter-item"
-        >
+          @clear="getList">
           <el-option v-for="(item, k) in statusOptions" :key="k" :label="item" :value="k"/>
         </el-select>
         <el-input
@@ -21,7 +21,8 @@
           placeholder="Title"
           style="width: 200px;margin-right: 10px"
           class="filter-item"
-        />
+          clearable
+          @clear="getList"/>
         <el-button v-waves class="filter-item" type="primary" icon="el-icon-search" @click="search">搜索</el-button>
       </div>
     </div>

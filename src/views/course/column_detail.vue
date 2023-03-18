@@ -32,6 +32,7 @@
           placeholder="商品状态"
           clearable
           style="width: 110px;margin-right: 10px"
+          @clear="getColumnCourse"
           class="filter-item">
           <el-option v-for="(item, k) in statusOptions" :key="k" :label="item" :value="k"/>
         </el-select>
@@ -42,7 +43,7 @@
           style="width: 200px;margin-right: 10px"
           class="filter-item"
           clearable
-          @clear="clearColumnCourse"/>
+          @clear="getColumnCourse"/>
 
         <el-button v-waves class="filter-item" type="primary" icon="el-icon-search" @click="searchColumnCourse">搜索</el-button>
       </div>
@@ -129,6 +130,7 @@
 import waves from '@/directive/waves' // waves directive
 import Pagination from '@/components/Pagination' // secondary package based on el-pagination
 import {fetchDetail, updateStatus, updateIsEnd, fetchColumnCourse} from '@/api/column'
+import Sortable from "sortablejs";
 
 let id
 export default {
@@ -169,6 +171,8 @@ export default {
       },
       statusOptions: ['未上架', '已上架'],
       courseType: ['图文', '音频', '视频'],
+      oldList: [],
+      newList: []
     }
   },
   beforeRouteEnter(to, from, next) {
@@ -185,15 +189,28 @@ export default {
         this.detail = res.data
       })
     },
-    getColumnCourse() {
+    async getColumnCourse() {
       this.listLoading = true
-      console.log(this.listQuery)
-      fetchColumnCourse(this.listQuery).then(res => {
-        this.listLoading = false
-        if (res.code === 20000) {
-          console.log(res.data)
-          this.columnCourses = res.data.data
-          this.columnCoursesTotal = res.data.total
+      const {data} = await fetchColumnCourse(this.listQuery)
+      this.columnCourses = data.data
+      this.columnCoursesTotal = data.total
+      this.$nextTick(() => {
+        this.setSort()
+      })
+    },
+    //拖拽排序
+    setSort() {
+      const el = this.$refs.dragTable.$el.querySelectorAll('.el-table__body-wrapper > table > tbody')[0]
+      this.sortable = Sortable.create(el, {
+        ghostClass: 'sortable-ghost', // Class name for the drop placeholder,
+        setData: function(dataTransfer) {
+          // to avoid Firefox bug
+          // Detail see : https://github.com/RubaXa/Sortable/issues/1012
+          dataTransfer.setData('Text', '')
+        },
+        onEnd: evt => {
+          const targetRow = this.columnCourses.splice(evt.oldIndex, 1)[0]
+          this.columnCourses.splice(evt.newIndex, 0, targetRow)
         }
       })
     },
@@ -222,15 +239,18 @@ export default {
     },
     searchColumnCourse() {
       this.getColumnCourse()
-    },
-    clearColumnCourse() {
-      this.getColumnCourse()
     }
   }
 }
 </script>
 
 <style scoped>
+.sortable-ghost{
+  opacity: .8;
+  color: #fff!important;
+  background: #42b983!important;
+}
+
 .drag-handler {
   width: 20px;
   height: 20px;

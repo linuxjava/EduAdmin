@@ -52,12 +52,12 @@
         </template>
       </el-table-column>
     </el-table>
-    <div class="show-d">
-      <el-tag>The default order :</el-tag> {{ oldList }}
-    </div>
-    <div class="show-d">
-      <el-tag>The after dragging order :</el-tag> {{ newList }}
-    </div>
+<!--    <div class="show-d">-->
+<!--      <el-tag>The default order :</el-tag> {{ oldList }}-->
+<!--    </div>-->
+<!--    <div class="show-d">-->
+<!--      <el-tag>The after dragging order :</el-tag> {{ newList }}-->
+<!--    </div>-->
   </div>
 </template>
 
@@ -87,8 +87,8 @@ export default {
         limit: 10
       },
       sortable: null,
-      oldList: [],
-      newList: []
+      // oldList: [],
+      // newList: []
     }
   },
   created() {
@@ -121,8 +121,8 @@ export default {
           this.list.splice(evt.newIndex, 0, targetRow)
 
           // for show the changes, you can delete in you code
-          const tempIndex = this.newList.splice(evt.oldIndex, 1)[0]
-          this.newList.splice(evt.newIndex, 0, tempIndex)
+          // const tempIndex = this.newList.splice(evt.oldIndex, 1)[0]
+          // this.newList.splice(evt.newIndex, 0, tempIndex)
         }
       })
     }
