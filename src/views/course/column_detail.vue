@@ -25,7 +25,7 @@
 
     <!--搜索和新增-->
     <div class="filter-container" style="display: flex;justify-content: space-between;margin-top: 20px">
-      <el-button class="filter-item" type="primary" icon="el-icon-edit">新增课程</el-button>
+      <el-button class="filter-item" type="primary" icon="el-icon-edit" @click="addColunmCourse">新增课程</el-button>
       <div>
         <el-select
           v-model="listQuery.status"
@@ -39,7 +39,7 @@
 
         <el-input
           v-model="listQuery.title"
-          placeholder="Title"
+          placeholder="请输入搜索内容"
           style="width: 200px;margin-right: 10px"
           class="filter-item"
           clearable
@@ -49,18 +49,22 @@
       </div>
     </div>
 
-    <!--表格-->
+    <!--表格
+      row-key:必须要添加，否则拖拽后item的序号不会变
+    -->
     <el-table
       ref="dragTable"
       :data="columnCourses"
       border
+      row-key="id"
       v-loading="columnCourseLoading"
       fit
       highlight-current-row
       style="width: 100%;">
       <el-table-column
         type="index"
-        width="50">
+        width="50"
+        label="序号">
       </el-table-column>
 
       <el-table-column label="课程名称" min-width="150px" align="center">
@@ -123,6 +127,8 @@
     <pagination v-show="columnCoursesTotal>0" :total="columnCoursesTotal" :page.sync="listQuery.page"
                 :limit.sync="listQuery.limit"
                 @pagination="getColumnCourse" style="padding-left: 0px"/>
+
+    <choose-course ref="chooseCourse"></choose-course>
   </div>
 </template>
 
@@ -131,13 +137,15 @@ import waves from '@/directive/waves' // waves directive
 import Pagination from '@/components/Pagination' // secondary package based on el-pagination
 import {fetchDetail, updateStatus, updateIsEnd, fetchColumnCourse} from '@/api/column'
 import Sortable from "sortablejs";
+import ChooseCourse from "@/components/ChooseCourse";
 
 let id
 export default {
   name: "ColumnDetail",
   directives: {waves},
   components: {
-    Pagination
+    Pagination,
+    ChooseCourse
   },
   filters: {
     statusFilter(status) {
@@ -237,8 +245,13 @@ export default {
         }
       })
     },
+    //搜索专辑课程
     searchColumnCourse() {
       this.getColumnCourse()
+    },
+    //添加专辑课程
+    addColunmCourse() {
+      this.$refs.chooseCourse.open()
     }
   }
 }
