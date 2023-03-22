@@ -16,7 +16,7 @@
             clearable
             @clear="clearSearchInput"/>
 
-          <el-button v-waves class="filter-item" type="primary" icon="el-icon-search">搜索</el-button>
+          <el-button v-waves class="filter-item" type="primary" icon="el-icon-search" @click="search">搜索</el-button>
         </div>
       </div>
 
@@ -41,16 +41,18 @@
           <el-main style="padding: 0">
             <!--表格-->
             <el-table
+              ref="multiTable"
               :data="list"
-              border
+              stripe
               fit
               highlight-current-row
-              style="width: 100%;"
-              max-height="390px">
+              style="width: 100%;height: 100%;overflow: auto"
+              @selection-change="handleSelectionChange">
 
               <el-table-column
                 type="selection"
-                width="55">
+                width="55"
+                align="center">
               </el-table-column>
 
               <el-table-column label="内容" min-width="150px" align="center">
@@ -81,7 +83,8 @@
             <pagination v-show="total>0" :total="total" :page.sync="listQuery.page"
                         :limit.sync="listQuery.limit"
                          style="width: 100%;margin-top: 0;padding: 0;text-align: center"
-                        @pagination="pagination"/>
+                        @pagination="pagination"
+                        layout="prev, pager, next"/>
           </el-footer>
         </el-container>
 
@@ -89,7 +92,7 @@
 
       <span style="display:block;text-align: center;margin-top: 20px">
         <el-button @click="dialogVisible=false">取 消</el-button>
-        <el-button type="primary">添 加</el-button>
+        <el-button type="primary" @click="add">添 加</el-button>
       </span>
     </el-dialog>
   </div>
@@ -125,25 +128,30 @@ export default {
         title: '',
         page: 1,
         limit: 10,
-      }
+      },
+      multipleSelection: [],
+      callback: undefined
     }
   },
   methods: {
-    open() {
+    open(callback) {
+      this.callback = callback;
       this.dialogVisible = true
       this.handleMenuSelect(1, null)
-    },
-    //搜索课程
-    searchColumnCourse() {
 
+      // let m ={}
+      // let r = require.context('@/api/', true, /\.js$/)
+      // console.log(r)
+      // console.log(r.keys())
+      // r.keys().forEach(key => m[key] = r(key))
+      // console.log(m)
     },
     //清除搜索内容
     clearSearchInput() {
-
+      this.handleMenuSelect(this.$refs.menu.activeIndex, null)
     },
     handleMenuSelect(key, keyPath){
       let method = undefined
-      console.log(typeof  key)
       if(key == 1) {
         method = fetchMediaList
       }else if(key == 2) {
@@ -162,6 +170,23 @@ export default {
     },
     pagination() {
       this.handleMenuSelect(this.$refs.menu.activeIndex, null)
+    },
+    search(){
+      this.handleMenuSelect(this.$refs.menu.activeIndex, null)
+    },
+    handleSelectionChange(val){
+      this.multipleSelection = val
+    },
+    add() {
+      if(this.multipleSelection.length <= 0) {
+        this.$message.info('最少选择一门课程')
+        return
+      }
+
+      this.callback && this.callback(this.multipleSelection)
+      this.listQuery.title = ''
+      this.$refs.multiTable.clearSelection()
+      this.dialogVisible = false
     }
   }
 }

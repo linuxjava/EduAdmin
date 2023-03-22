@@ -91,7 +91,7 @@
 
       <el-table-column label="访问量" width="110px" align="center">
         <template slot-scope="{row}">
-          <span>{{ row.visits }}</span>
+          <span>{{ row.visits}}</span>
         </template>
       </el-table-column>
 
@@ -108,7 +108,7 @@
           <el-button type="primary" size="mini">
             编辑
           </el-button>
-          <el-popconfirm title="是否要删除该记录?" style="margin-left: 10px;">
+          <el-popconfirm title="是否要删除该记录?" style="margin-left: 10px;" @onConfirm="deleteItem(row, $index)">
             <el-button size="mini" type="danger" slot="reference">
               删除
             </el-button>
@@ -175,7 +175,7 @@ export default {
         page: 1,
         limit: 10,
         status: undefined,
-        title: undefined,
+        title: '',
       },
       statusOptions: ['未上架', '已上架'],
       courseType: ['图文', '音频', '视频'],
@@ -251,7 +251,18 @@ export default {
     },
     //添加专辑课程
     addColunmCourse() {
-      this.$refs.chooseCourse.open()
+      this.$refs.chooseCourse.open(data => {
+        this.columnCourses = [...data, ...this.columnCourses]
+      })
+    },
+    deleteItem(row, index){
+      this.$notify({
+        title: '提示',
+        message: '删除成功',
+        type: 'success',
+        duration: 2000
+      })
+      this.columnCourses.splice(index, 1)
     }
   }
 }

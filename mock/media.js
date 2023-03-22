@@ -14,6 +14,7 @@ for (let i = 0; i < count; i++) {
     'status|1': ['0', '1'],
     'created_time': '@now',
     'updated_time': '@now',
+    visits: '@integer(1, 1000)',
     subscription: '@integer(1, 1000)',
     courseType: 0
   }))
