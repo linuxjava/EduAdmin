@@ -4,6 +4,30 @@ export function fetchList(query) {
   return get('/vue-element-admin/user/list', query)
 }
 
+export function getUserDetail(query) {
+  return get('/vue-element-admin/user_detail', query)
+}
+
+export function fetchCourseSubscription(query) {
+  return get('/vue-element-admin/user/course-subscription', query)
+}
+
+export function fetchColumnSubscription(query) {
+  return get('/vue-element-admin/user/column-subscription', query)
+}
+
+export function fetchOrderRecord(query) {
+  return get('/vue-element-admin/user/order-record', query)
+}
+
+export function fetchHistory(query) {
+  return get('/vue-element-admin/user/history', query)
+}
+
+export function fetchComment(query) {
+  return get('/vue-element-admin/user/comment', query)
+}
+
 
 function get(url, query) {
   return request({

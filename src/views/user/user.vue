@@ -49,16 +49,16 @@
         </template>
       </el-table-column>
 
-      <el-table-column label="创建时间" width="110px" align="center">
+      <el-table-column label="创建时间" width="180px" align="center">
         <template slot-scope="{row}">
           <span>{{row.created_time}}</span>
         </template>
       </el-table-column>
 
-      <el-table-column label="操作" width="300px" align="center">
+      <el-table-column label="操作" width="330px" align="center">
         <template slot-scope="{row, $index}">
-          <el-button type="primary" size="mini">
-            详情
+          <el-button type="primary" size="mini" @click="userDetail(row)">
+            用户详情
           </el-button>
           <el-button size="mini" type="success">
             联系用户
@@ -73,16 +73,19 @@
     <!--分页-->
     <pagination v-show="total>0" :total="total" :page.sync="listQuery.page" :limit.sync="listQuery.limit"
                 @pagination="getList" style="padding-left: 0;text-align: center;margin-top: 0px"/>
+
+    <info ref="userInfo"></info>
   </div>
 </template>
 
 <script>
 import waves from '@/directive/waves' // waves directive
 import Pagination from '@/components/Pagination' // secondary package based on el-pagination
+import Info from '@/views/user/info.vue'
 import {fetchList} from '@/api/my_user'
 export default {
   name: "user",
-  components: {Pagination},
+  components: {Pagination, Info},
   directives: {waves},
   created() {
     this.getList()
@@ -109,7 +112,10 @@ export default {
       })
     },
     addBlackList(){},
-    handleSelectionChange(val){}
+    handleSelectionChange(val){},
+    userDetail(row){
+      this.$refs.userInfo.open(row.user_id)
+    }
   }
 }
 </script>
