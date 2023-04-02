@@ -1,7 +1,16 @@
 <template>
   <div class="app-container">
     <div class="filter-container" style="display: flex;justify-content: space-between">
-      <el-button class="filter-item" type="danger" icon="el-icon-edit" @click="addBlackList">黑名单设置</el-button>
+      <el-dropdown style="margin-left: 10px">
+        <el-button type="danger">
+          黑名单设置<i class="el-icon-arrow-down el-icon--right"></i>
+        </el-button>
+        <el-dropdown-menu slot="dropdown">
+          <el-dropdown-item @click.native="disableComment">禁止评论</el-dropdown-item>
+          <el-dropdown-item @click.native="disableAccess">禁止访问</el-dropdown-item>
+        </el-dropdown-menu>
+      </el-dropdown>
+
       <div>
         <el-input
           v-model="listQuery.title"
@@ -63,9 +72,15 @@
           <el-button size="mini" type="success">
             联系用户
           </el-button>
-          <el-button size="mini">
-            黑名单设置
-          </el-button>
+          <el-dropdown style="margin-left: 10px">
+            <el-button type="danger" size="mini">
+              黑名单设置<i class="el-icon-arrow-down el-icon--right"></i>
+            </el-button>
+            <el-dropdown-menu slot="dropdown">
+              <el-dropdown-item @click.native="changeCommentStatus(row)">{{row.comment === 0 ? '允许评论' : '禁止评论'}}</el-dropdown-item>
+              <el-dropdown-item @click.native="changeAccessStatus(row)">{{row.access === 0 ? '允许访问' : '禁止访问'}}</el-dropdown-item>
+            </el-dropdown-menu>
+          </el-dropdown>
         </template>
       </el-table-column>
     </el-table>
@@ -82,7 +97,7 @@
 import waves from '@/directive/waves' // waves directive
 import Pagination from '@/components/Pagination' // secondary package based on el-pagination
 import Info from '@/views/user/info.vue'
-import {fetchList} from '@/api/my_user'
+import {fetchComment, fetchList, changeComment, changeAccess, disableComment, disableAccess} from '@/api/my_user'
 export default {
   name: "user",
   components: {Pagination, Info},
@@ -98,23 +113,98 @@ export default {
         limit: 10
       },
       list: [],
-      total: 0
+      total: 0,
+      multipleSelection: []
     }
   },
   methods: {
     getList(){
       fetchList(this.listQuery).then(res => {
-        console.log(res)
         if(res.code === 20000) {
           this.list = res.data.items
           this.total = res.data.total
+          console.log(this.list)
         }
       })
     },
     addBlackList(){},
-    handleSelectionChange(val){},
+    handleSelectionChange(val){
+      this.multipleSelection = val
+    },
     userDetail(row){
       this.$refs.userInfo.open(row.user_id)
+    },
+    changeCommentStatus(row){
+      let msg = row.comment === 0 ? '是否允许当前用户评论' : '是否禁止当前用户评论'
+      this.$confirm(msg, '提示', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }).then(action => {
+        changeComment({user_id: row.user_id}).then(res => {
+          if(res.code === 20000) {
+            this.getList()
+            this.$notify.success('更新成功')
+          }})
+      })
+    },
+    changeAccessStatus(row){
+      let msg = row.comment === 0 ? '是否允许当前用户访问' : '是否禁止当前用户访问'
+      this.$confirm(msg, '提示', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }).then(action => {
+        changeAccess({user_id: row.user_id}).then(res => {
+          if(res.code === 20000) {
+            this.getList()
+            this.$notify.success('更新成功')
+          }})
+      })
+    },
+    disableComment(){
+      if(this.multipleSelection.length <= 0) {
+        this.$message.info('请至少选择一个用户')
+        return
+      }
+
+      this.$confirm('是否禁止所有选择的用户评论', '提示', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }).then(action => {
+        let ids = this.multipleSelection.map(user => user.user_id)
+        disableComment({ids}).then(res => {
+          console.log(res)
+          if(res.code === 20000) {
+            this.getList()
+            this.$notify.success('更新成功')
+            this.$refs.multiTable.clearSelection()
+          }
+        })
+      })
+    },
+    disableAccess(){
+      if(this.multipleSelection.length <= 0) {
+        this.$message.info('请至少选择一个用户')
+        return
+      }
+
+      this.$confirm('是否禁止所有选择的用户评论', '提示', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }).then(action => {
+        let ids = this.multipleSelection.map(user => user.user_id)
+        disableAccess({ids}).then(res => {
+          console.log(res)
+          if(res.code === 20000) {
+            this.getList()
+            this.$notify.success('更新成功')
+            this.$refs.multiTable.clearSelection()
+          }
+        })
+      })
     }
   }
 }

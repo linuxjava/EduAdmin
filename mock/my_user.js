@@ -206,6 +206,75 @@ module.exports = [
         }
       }
     }
+  },
+  {
+    url: '/vue-element-admin/user/change-comment',
+    type: 'get',
+    response: config => {
+      const {user_id} = config.query
+
+      let user = List.find(item => item.user_id == user_id)
+      user.comment = user.comment === 0 ? 1 : 0
+
+      return {
+        code: 20000,
+        data: {}
+      }
+    }
+  },
+  {
+    url: '/vue-element-admin/user/change-access',
+    type: 'get',
+    response: config => {
+      const {user_id} = config.query
+
+      let user = List.find(item => item.user_id == user_id)
+      user.access = user.access === 0 ? 1 : 0
+
+      return {
+        code: 20000,
+        data: {}
+      }
+    }
+  },
+  {
+    url: '/vue-element-admin/user/disable-comment',
+    type: 'post',
+    response: config => {
+      const {ids} = config.body
+      ids.forEach(id => {
+        List.forEach(item => {
+          if(id == item.user_id) {
+            item.comment = 0;
+          }
+        })
+      })
+
+      return {
+        code: 20000,
+        data: {}
+      }
+    }
+  },
+  {
+    url: '/vue-element-admin/user/disable-access',
+    type: 'post',
+    response: config => {
+      const {ids} = config.body
+      console.log(ids)
+      ids.forEach(id => {
+        List.forEach(item => {
+          if(id === item.user_id) {
+            item.access = 0;
+          }
+        })
+      })
+
+      return {
+        code: 20000,
+        data: {}
+      }
+    }
   }
 ]
 

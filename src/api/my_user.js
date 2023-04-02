@@ -28,6 +28,22 @@ export function fetchComment(query) {
   return get('/vue-element-admin/user/comment', query)
 }
 
+export function changeComment(query) {
+  return get('/vue-element-admin/user/change-comment', query)
+}
+
+export function changeAccess(query) {
+  return get('/vue-element-admin/user/change-access', query)
+}
+
+export function disableComment(query) {
+  return post('/vue-element-admin/user/disable-comment', query)
+}
+
+export function disableAccess(data) {
+  return post('/vue-element-admin/user/disable-access', data)
+}
+
 
 function get(url, query) {
   return request({
