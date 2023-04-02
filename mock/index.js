@@ -10,6 +10,7 @@ const audio = require('./audio')
 const video = require('./video')
 const column = require('./column')
 const myUser = require('./my_user')
+const pay = require('./pay')
 
 const mocks = [
   ...user,
@@ -20,7 +21,8 @@ const mocks = [
   ...audio,
   ...video,
   ...column,
-  ...myUser
+  ...myUser,
+  ...pay,
 ]
 
 // for front mock
