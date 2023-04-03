@@ -1,7 +1,9 @@
 <template>
   <div class="app-container">
     <div class="filter-container" style="display: flex;justify-content: space-between">
-      <el-button v-waves class="filter-item" type="primary" icon="el-icon-document">导出选中</el-button>
+      <el-button v-waves class="filter-item" type="primary" icon="el-icon-document" :loading="downloadLoading"
+                 @click="download">导出选中
+      </el-button>
 
       <div>
         <el-select
@@ -39,13 +41,13 @@
 
       <el-table-column label="订单号" width="110px" align="center">
         <template slot-scope="{row}">
-          {{row.no}}
+          {{ row.no }}
         </template>
       </el-table-column>
 
       <el-table-column label="商品名称" min-width="150px" align="center">
         <template slot-scope="{row}">
-          {{row.title}}
+          {{ row.title }}
         </template>
       </el-table-column>
 
@@ -57,26 +59,26 @@
 
       <el-table-column label="订单状态" width="110px" align="center">
         <template slot-scope="{row}">
-          {{statusOptions[row.status]}}
+          {{ statusOptions[row.status] }}
         </template>
       </el-table-column>
 
       <el-table-column label="原价/实付(元)" width="110px" align="center">
         <template slot-scope="{row}">
-          {{row.price}}/{{row.total_price}}
+          {{ row.price }}/{{ row.total_price }}
         </template>
       </el-table-column>
 
       <el-table-column label="支付方式" width="110px" align="center">
         <template slot-scope="{row}">
-          {{payMethodOptions[row.pay_method]}}
+          {{ payMethodOptions[row.pay_method] }}
         </template>
       </el-table-column>
 
-      <el-table-column label="创建时间" width="180px" align="center">
+      <el-table-column label="创建时间/支付时间" width="200px" align="center">
         <template slot-scope="{row}">
-          <span>{{row.created_time}}</span><br/>
-          <span>{{row.pay_time}}</span>
+          <span>{{ row.created_time }}</span><br/>
+          <span>{{ row.pay_time }}</span>
         </template>
       </el-table-column>
 
@@ -100,6 +102,7 @@
 import waves from '@/directive/waves' // waves directive
 import Pagination from '@/components/Pagination' // secondary package based on el-pagination
 import {getOrders, orderDel} from '@/api/pay'
+import {parseTime} from "@/utils";
 
 
 export default {
@@ -128,25 +131,25 @@ export default {
       payMethodOptions: {
         'wechat': '微信',
       },
-      multiSelections: []
+      multiSelections: [],
+      downloadLoading: false
     }
   },
   created() {
     this.getList()
   },
   methods: {
-    async getList(){
+    async getList() {
       let res = await getOrders(this.listQuery)
-      console.log(res)
-      if(res.code === 20000) {
+      if (res.code === 20000) {
         this.list = res.data.items
         this.total = res.data.total
       }
     },
-    handleSelectionChange(val){
+    handleSelectionChange(val) {
       this.multiSelections = val
     },
-    deleteItem(row){
+    deleteItem(row) {
       this.$confirm('是否删除此订单记录', '提示', {
         confirmButtonText: '确定',
         cancelButtonText: '取消',
@@ -157,7 +160,7 @@ export default {
         // this.list.splice(index, 1)
         // console.log(this.list)
         orderDel({no: row.no}).then(res => {
-          if(res.code === 20000) {
+          if (res.code === 20000) {
             this.getList()
             this.$notify({
               type: "success",
@@ -166,6 +169,41 @@ export default {
           }
         })
       })
+    },
+    download() {
+      if (this.multiSelections.length <= 0) {
+        this.$message.info("请至少选择一项")
+        return
+      }
+
+      this.downloadLoading = true
+      import('@/vendor/Export2Excel').then(excel => {
+        const tHeader = ['订单号', '商品名称', '订单类型', '订单状态', '原价', '折扣价', '支付方式', '创建时间', '支付时间']
+        const filterVal = ['no', 'title', 'type', 'status', 'total_price', 'price', 'pay_method', 'created_time', 'pay_time']
+        const list = this.multiSelections
+        const data = this.formatJson(filterVal, list)
+        excel.export_json_to_excel({
+          header: tHeader,
+          data,
+          filename: '1.xlsx',
+        })
+        this.downloadLoading = false
+        this.$refs.multiTable.clearSelection()
+      })
+    },
+    formatJson(filterVal, jsonData) {
+      return jsonData.map(v => filterVal.map(j => {
+        console.log(j)
+        if (j === 'type') {
+          return this.orderOptions[v[j]]
+        } else if (j === 'status') {
+          return this.statusOptions[v[j]]
+        } else if (j === 'pay_method') {
+          return this.payMethodOptions[v[j]]
+        } else {
+          return v[j]
+        }
+      }))
     }
   }
 }
