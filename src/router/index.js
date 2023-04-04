@@ -215,7 +215,7 @@ export const asyncRoutes = [
         path: 'payment',
         component: () => import('@/views/my-pay/payment'),
         name: 'Payment',
-        meta: { title: '字符设置' }
+        meta: { title: '支付设置' }
       }
     ]
   },

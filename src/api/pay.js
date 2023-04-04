@@ -7,3 +7,11 @@ export function getOrders(data) {
 export function orderDel(data) {
   return get('/vue-element-admin/pay/del-order', data)
 }
+
+export function fetchCashOut(data){
+  return get('/vue-element-admin/pay/assets', data)
+}
+
+export function fetchAccounts(data){
+  return get('/vue-element-admin/pay/accounts', data)
+}
