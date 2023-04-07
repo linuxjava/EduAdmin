@@ -40,7 +40,7 @@ for (let i = 0; i < 5; i++) {
   const bank = '北京银行' + i
   accountList.push(Mock.mock({
     id: '@increment',
-    account: '6216************7287',
+    account: ('6216************728' + i),
     province: '北京市',
     city: '朝阳区',
     area: '朝阳区',
@@ -123,6 +123,47 @@ module.exports = [
         data: {
           total: accountList.length,
           items: pageList
+        }
+      }
+    }
+  },
+  {
+    url: '/vue-element-admin/pay/cash-out',
+    type: 'post',
+    response: config => {
+      const {accountId, price} = config.body
+
+      const account = accountList.find(item => item.id === accountId)
+
+      cashOutList.push(Mock.mock({
+        id: '@increment',
+        account: account.account,
+        total_price: '@integer(100, 200)',
+        name: account.name,
+        'price|1': price,
+        'status|1': [0, 1],
+        created_time: '@now',
+      }))
+
+      return {
+        code: 20000,
+        data: {
+        }
+      }
+    }
+  },
+  {
+    url: '/vue-element-admin/pay/delAccount',
+    type: 'get',
+    response: config => {
+      const {accountId} = config.query
+
+      const index = accountList.findIndex(item => item.account === accountId)
+      accountList.splice(index, 1)
+
+      return {
+        code: 20000,
+        data: {
         }
       }
     }

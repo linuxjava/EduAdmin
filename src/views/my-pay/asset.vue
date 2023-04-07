@@ -8,7 +8,7 @@
               <span>可用余额（元）</span>
               <el-button type="primary" @click="cashOut">申请提现</el-button>
             </div>
-            <span style="font-size: 40px;font-weight: bold">20.00</span>
+            <span style="font-size: 40px;font-weight: bold">{{ availableAmount }}</span>
           </el-card>
         </el-col>
         <el-col :span="6">
@@ -85,14 +85,15 @@
 
     <el-dialog
       title="提现申请"
-      :visible.sync="dialogVisible">
+      :visible.sync="dialogVisible"
+      @close='closeDialog'>
       <el-form :model="form" :rules="rules" ref="form" label-width="100px" class="demo-ruleForm">
         <el-form-item label="提现金额" required prop="price">
           <el-input-number v-model="form.price" :min="0" label="提现金额"></el-input-number>
         </el-form-item>
 
-        <el-form-item label="提现账户" required prop="price">
-          <el-select v-model="form.id" placeholder="请选择" style="width: 270px">
+        <el-form-item label="提现账户" required prop="accountId">
+          <el-select v-model="form.accountId" placeholder="请选择" style="width: 270px">
             <el-option
               v-for="item in accounts"
               :key="item.id"
@@ -108,7 +109,7 @@
       </el-form>
       <span style="display:block;text-align: center">
         <el-button @click="dialogVisible=false">取 消</el-button>
-        <el-button type="primary">提 交</el-button>
+        <el-button type="primary" @click="submit">提 交</el-button>
       </span>
     </el-dialog>
   </div>
@@ -117,13 +118,23 @@
 <script>
 import waves from '@/directive/waves' // waves directive
 import Pagination from '@/components/Pagination' // secondary package based on el-pagination
-import {fetchCashOut, fetchAccounts} from '@/api/pay'
+import {fetchCashOut, fetchAccounts, cashOut} from '@/api/pay'
 export default {
   name: "Asset",
   components: {Pagination},
   directives: {waves},
   data(){
+    const validatePrice = (rule, value, callback) => {
+      if (value > this.availableAmount) {
+        callback(new Error('提现金额不能超过' + this.availableAmount));
+      }else if (value <= 0) {
+        callback(new Error('请输入提现金额'));
+      }else {
+        callback();
+      }
+    }
     return {
+      availableAmount: 20.00,
       showLoading: false,
       list: [],
       total: 0,
@@ -134,14 +145,17 @@ export default {
       dialogVisible: false,
       form: {
         price: 0,
-        id: ''
+        accountId: ''
       },
       rules: {
         price: [
-          {required: true, message: '请输入商品价格', trigger: 'change'},
+          {validator: validatePrice, trigger: 'blur'},
+        ],
+        accountId: [
+          {required: true, message: '请输入提现账户', trigger: 'change'},
         ]
       },
-      accounts: []
+      accounts: [],
     }
   },
   created(){
@@ -151,7 +165,6 @@ export default {
     async getList() {
       this.showLoading = true
       const res = await fetchCashOut(this.listQuery)
-      console.log(res)
       this.showLoading = false
       if(res.code === 20000) {
         this.list = res.data.items
@@ -169,11 +182,36 @@ export default {
     cashOut(){
       this.dialogVisible = true
       fetchAccounts({}).then(res => {
-        console.log(res)
         if(res.code === 20000) {
           this.accounts = res.data.items
         }
       })
+    },
+    submit(){
+      this.$refs['form'].validate(valid => {
+        if(!valid) {
+          return
+        }
+
+        cashOut(this.form).then(res => {
+          this.dialogVisible = false;
+          this.form = {
+            price: 0,
+            accountId: ''
+          }
+          if(res.code === 20000) {
+            this.$message.success('提现成功')
+            this.getList()
+          }
+        })
+      })
+
+    },
+    closeDialog() {
+      this.form = {
+        price: 0,
+        accountId: ''
+      }
     }
   }
 }

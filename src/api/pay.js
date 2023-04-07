@@ -15,3 +15,11 @@ export function fetchCashOut(data){
 export function fetchAccounts(data){
   return get('/vue-element-admin/pay/accounts', data)
 }
+
+export function cashOut(data) {
+  return post('/vue-element-admin/pay/cash-out', data)
+}
+
+export function delAccount(data){
+  return get('/vue-element-admin/pay/delAccount', data)
+}
