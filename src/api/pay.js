@@ -23,3 +23,7 @@ export function cashOut(data) {
 export function delAccount(data){
   return get('/vue-element-admin/pay/delAccount', data)
 }
+
+export function addAccount(data) {
+  return post('/vue-element-admin/pay/addAccount', data)
+}

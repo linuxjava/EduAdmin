@@ -42,14 +42,15 @@ for (let i = 0; i < 5; i++) {
     id: '@increment',
     account: ('6216************728' + i),
     province: '北京市',
-    city: '朝阳区',
+    city: '北京市',
     area: '朝阳区',
     address: '北京银行昌平区回龙观...',
     bank: bank,
     name: '@ctitle(5, 10)',
-    id_card: '',
+    id_card: '@ctitle(5, 10)',
     'status|1': [0, 1],
     created_time: '@now',
+    phoneNumber: '@ctitle(5, 10)',
   }))
 }
 
@@ -160,6 +161,47 @@ module.exports = [
 
       const index = accountList.findIndex(item => item.account === accountId)
       accountList.splice(index, 1)
+
+      return {
+        code: 20000,
+        data: {
+        }
+      }
+    }
+  },
+  {
+    url: '/vue-element-admin/pay/addAccount',
+    type: 'post',
+    response: config => {
+      const {id, dialogType, account, name, cardId, phoneNumber, bank, province, city, area, address} = config.body
+
+      if(dialogType === 'add') {
+        accountList.push(Mock.mock({
+          id: '@increment',
+          account: account,
+          province: province,
+          city: city,
+          area: area,
+          address: address,
+          bank: bank,
+          name: name,
+          id_card: cardId,
+          'status|1': [0, 1],
+          created_time: '@now',
+          phoneNumber: phoneNumber
+        }))
+      }else {
+        const item = accountList.find(item => item.id === id)
+        item.account = account
+        item.province = province
+        item.city = city
+        item.area = area
+        item.address = address
+        item.bank = bank
+        item.name = name
+        item.id_card = cardId
+        item.phoneNumber = phoneNumber
+      }
 
       return {
         code: 20000,
