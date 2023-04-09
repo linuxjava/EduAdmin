@@ -220,6 +220,35 @@ export const asyncRoutes = [
     ]
   },
   {
+    path: '/marketing',
+    component: Layout,
+    alwaysShow: true,
+    meta: {
+      title: '营销', icon: 'shopping', roles: ['admin', 'editor']
+    },
+    redirect: '/group',
+    children: [
+      {
+        path: 'group',
+        component: () => import('@/views/marketing/group'),
+        name: 'Group',
+        meta: { title: '拼团' }
+      },
+      {
+        path: 'splashsale',
+        component: () => import('@/views/marketing/splashsale'),
+        name: 'Splashsale',
+        meta: { title: '秒杀' }
+      },
+      {
+        path: 'coupon',
+        component: () => import('@/views/marketing/coupon'),
+        name: 'Coupon',
+        meta: { title: '优惠券' }
+      }
+    ]
+  },
+  {
     path: '/permission',
     component: Layout,
     redirect: '/permission/page',
