@@ -17,31 +17,35 @@
 
       <el-table-column label="拼团课程" min-width="150px" align="center">
         <template slot-scope="{row}">
-          {{ row.account }}
+          <div style="display: flex">
+            <img
+              :src="row.value.cover"
+              style="width: 100px;height: 50px">
+            <div
+              style="display: flex;flex-direction: column;justify-content: space-between;align-items:flex-start;margin-left: 10px">
+              <span style="color:#0485fd;">{{ row.value.title }}</span>
+              <span style="color: red;font-size: 12px">原始价格：{{ row.value.price }}</span>
+              <span style="color: red;font-size: 12px">拼团价格：{{ row.price }}</span>
+            </div>
+          </div>
         </template>
       </el-table-column>
 
       <el-table-column label="成团人数" width="250px" align="center">
         <template slot-scope="{row}">
-          {{ row.name }}
-        </template>
-      </el-table-column>
-
-      <el-table-column label="拼团价" width="250px" align="center">
-        <template slot-scope="{row}">
-          {{ row.address }}
+          {{ row.p_num }}
         </template>
       </el-table-column>
 
       <el-table-column label="拼团时限(小时)" width="250px" align="center">
         <template slot-scope="{row}">
-          {{ row.address }}
+          {{ row.expire }}
         </template>
       </el-table-column>
 
       <el-table-column label="拼团状态" width="250px" align="center">
         <template slot-scope="{row}">
-          {{ row.address }}
+          <span :style="row.time_status === '拼团中' ? 'color:red' : 'color:#bbbbbb'">{{ row.time_status }}</span>
         </template>
       </el-table-column>
 
@@ -51,7 +55,7 @@
             修改
           </el-button>
 
-          <el-button type="danger" size="mini" @click="deleteItem(row)">
+          <el-button type="danger" size="mini" @click="deleteItem(row)" :disabled="row.status === 0">
             下架
           </el-button>
         </template>
@@ -67,7 +71,7 @@
 <script>
 import waves from '@/directive/waves' // waves directive
 import Pagination from '@/components/Pagination' // secondary package based on el-pagination
-import {fetchGroup} from '@/api/marketing'
+import {fetchGroup, groupTakeOff} from '@/api/marketing'
 
 export default {
   name: "group",
@@ -75,6 +79,12 @@ export default {
   directives: {waves},
   data() {
     return {
+      timeStatus: {
+        0: '已结束',
+        1: '拼团中',
+        2: '未开始',
+        3: '已下架',
+      },
       list: [],
       total: 0,
       listQuery: {
@@ -123,21 +133,39 @@ export default {
     this.getList()
   },
   methods: {
-    async getList(){
+    getTimeStatus(item) {
+      if(item.status === 0) {
+        return this.timeStatus[3]
+      }
+      let startTime = new Date(item.start_time).getTime()
+      let endTime = new Date(item.end_time).getTime()
+      let nowTime = new Date().getTime()
+
+      if (nowTime > endTime) {
+        return this.timeStatus[0]
+      } else if (nowTime <= endTime && nowTime >= startTime) {
+        return this.timeStatus[1]
+      } else {
+        return this.timeStatus[2]
+      }
+    },
+    async getList() {
       this.loadingShow = true
       const res = await fetchGroup(this.listQuery)
       this.loadingShow = false
-      console.log(res)
-      if(res.code === 20000) {
-        this.list = res.data.items
+      if (res.code === 20000) {
+        this.list = res.data.items.map(item => {
+          item.time_status = this.getTimeStatus(item)
+          return item
+        })
         this.total = res.data.total
       }
     },
-    addAccount(){
+    addAccount() {
       this.form.dialogType = 'add'
       this.dialogVisible = true
     },
-    editItem(row){
+    editItem(row) {
       this.form.dialogType = 'edit'
       this.form.id = row.id
       this.form.account = row.account
@@ -151,13 +179,19 @@ export default {
       this.form.address = row.address
       this.dialogVisible = true;
     },
-    deleteItem(row){
-      this.$confirm('是否删除此账号', '提示', {
+    deleteItem(row) {
+      this.$confirm('是否下架', '提示', {
         confirmButtonText: '确定',
         cancelButtonText: '取消',
         type: 'warning'
       }).then(action => {
-
+        // row.status = 0
+        // row.time_status = '已下架'
+        groupTakeOff({id: row.id}).then(res => {
+          console.log(this.list)
+          this.$message.success('下架成功')
+          this.getList()
+        })
       })
     },
     closeDialog() {
@@ -168,11 +202,11 @@ export default {
     },
     submit() {
       this.$refs.form.validate(valid => {
-        if(!valid){
+        if (!valid) {
           return
         }
 
-        if(this.form.province === '' || this.form.city === '' ||
+        if (this.form.province === '' || this.form.city === '' ||
           this.form.area === '') {
           this.$message.warning('请选择省市区')
           return;
