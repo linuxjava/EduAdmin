@@ -128,7 +128,7 @@
                 :limit.sync="listQuery.limit"
                 @pagination="getColumnCourse" style="padding-left: 0px"/>
 
-    <choose-course ref="chooseCourse"></choose-course>
+    <choose-course ref="chooseCourse" is-multi></choose-course>
   </div>
 </template>
 

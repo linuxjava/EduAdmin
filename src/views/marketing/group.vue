@@ -65,6 +65,78 @@
     <!--分页-->
     <pagination v-show="total>0" :total="total" :page.sync="listQuery.page" :limit.sync="listQuery.limit"
                 @pagination="getList" style="padding-left: 0;text-align: center;margin-top: 0px"/>
+
+    <el-dialog
+      :title="this.dialogType === 'add' ? '新增' : '更新'"
+      :visible.sync="dialogVisible"
+      @close='closeDialog'>
+      <el-form :model="form" :rules="rules" ref="form" label-width="130px">
+        <el-form-item label="类型" required prop="type">
+          <el-select v-model="form.type" placeholder="请选择课程类型" style="width: 270px">
+            <el-option
+              v-for="(val, key, index) in courseType"
+              :key="index"
+              :label="val"
+              :value="key">
+            </el-option>
+          </el-select>
+        </el-form-item>
+
+        <el-form-item label="关联课程" required prop="associateCourse">
+          <el-button type="primary" @click="associateCourse">关联</el-button>
+          <el-card style="display: flex;margin-top: 10px;width: 342px;display: flex;flex-direction: column" v-if="form.associateCourse">
+            <img :src="form.associateCourse.cover" style="width: 300px;height: 150px">
+            <span>{{form.associateCourse.title}}</span><br>
+            <span style="color: red">${{form.associateCourse.price}}</span>
+          </el-card>
+        </el-form-item>
+
+        <el-form-item label="拼团价" required prop="groupPrice">
+          <el-input-number v-model="form.groupPrice" :min="0" label="拼团价"></el-input-number>
+        </el-form-item>
+
+        <el-form-item label="拼团人数" required prop="groupPeople">
+          <el-input-number v-model="form.groupPeople" :min="0" label="拼团人数"></el-input-number>
+        </el-form-item>
+
+        <el-form-item label="是否开启凑团" prop="isCouTuan">
+          <template>
+            <el-radio-group v-model="form.isCouTuan">
+              <el-radio label="0">否</el-radio>
+              <el-radio label="1">是</el-radio>
+            </el-radio-group>
+          </template>
+        </el-form-item>
+
+        <el-form-item label="拼团时限" required prop="expire">
+          <template>
+            <el-radio-group v-model="form.expire">
+              <el-radio label="0">24小时</el-radio>
+              <el-radio label="1">48小时</el-radio>
+            </el-radio-group>
+          </template>
+        </el-form-item>
+
+        <el-form-item label="拼团活动时间" required prop="startEndTime">
+          <template>
+            <el-date-picker
+              v-model="form.startEndTime"
+              type="datetimerange"
+              range-separator="至"
+              start-placeholder="开始日期"
+              end-placeholder="结束日期">
+            </el-date-picker>
+          </template>
+        </el-form-item>
+
+      </el-form>
+      <span style="display:block;text-align: center">
+        <el-button @click="dialogVisible=false">取 消</el-button>
+        <el-button type="primary" @click="submit">{{this.dialogType === 'add' ? '提 交' : '更 新'}}</el-button>
+      </span>
+    </el-dialog>
+
+    <choose-course ref="chooseCourse"></choose-course>
   </div>
 </template>
 
@@ -72,18 +144,30 @@
 import waves from '@/directive/waves' // waves directive
 import Pagination from '@/components/Pagination' // secondary package based on el-pagination
 import {fetchGroup, groupTakeOff} from '@/api/marketing'
+import ChooseCourse from "@/components/ChooseCourse";
 
 export default {
   name: "group",
-  components: {Pagination},
+  components: {Pagination, ChooseCourse},
   directives: {waves},
   data() {
+    const validateAssociateCourse = (rule, value, callback) => {
+      if (!this.form.associateCourse) {
+        callback(new Error('请关联课程'));
+      }else {
+        callback();
+      }
+    }
     return {
       timeStatus: {
         0: '已结束',
         1: '拼团中',
         2: '未开始',
         3: '已下架',
+      },
+      courseType: {
+        course: '课程',
+        column: '专栏'
       },
       list: [],
       total: 0,
@@ -93,38 +177,37 @@ export default {
       },
       loadingShow: false,
       dialogVisible: false,
+      dialogType: undefined,
       form: {
-        dialogType: '',
-        id: '',
-        account: '',
-        name: '',
-        cardId: '',
-        phoneNumber: '',
-        bank: '',
-        province: '',
-        city: '',
-        area: '',
-        address: ''
+        type: '',
+        associateCourse: undefined,
+        groupPrice: undefined,
+        groupPeople: undefined,
+        isCouTuan: undefined,
+        expire: undefined,
+        startEndTime: undefined
       },
       rules: {
-        account: [
-          {required: true, message: '请输入账号', trigger: 'blur'},
+        type: [
+          {required: true, message: '请选择课程类型', trigger: 'change'},
         ],
-        name: [
-          {required: true, message: '请输入姓名', trigger: 'blur'},
-          {min: 3, max: 5, message: '长度在 3 到 10 个字符', trigger: 'blur'}
+        associateCourse: [
+          {required: true, validator: validateAssociateCourse, trigger: 'blur'},
         ],
-        cardId: [
-          {required: true, message: '请输入身份证', trigger: 'blur'},
+        groupPrice: [
+          {required: true, message: '请设置拼团价格', trigger: 'change'},
         ],
-        phoneNumber: [
-          {required: true, message: '请输入手机号', trigger: 'blur'},
+        groupPeople: [
+          {required: true, message: '请设置拼团人数', trigger: 'change'},
         ],
-        bank: [
-          {required: true, message: '请选择银行', trigger: 'change'},
+        isCouTuan: [
+          {required: true, message: '请选择是否开启凑团', trigger: 'change'},
         ],
-        address: [
-          {required: true, message: '请输入地址', trigger: 'blur'},
+        expire: [
+          {required: true, message: '请选择拼团时限', trigger: 'change'},
+        ],
+        startEndTime: [
+          {required: true, message: '请选择拼团时限', trigger: 'change'},
         ]
       },
     }
@@ -162,21 +245,11 @@ export default {
       }
     },
     addAccount() {
-      this.form.dialogType = 'add'
+      this.dialogType = 'add'
       this.dialogVisible = true
     },
     editItem(row) {
-      this.form.dialogType = 'edit'
-      this.form.id = row.id
-      this.form.account = row.account
-      this.form.name = row.name
-      this.form.cardId = row.id_card
-      this.form.phoneNumber = row.phoneNumber
-      this.form.bank = row.bank
-      this.form.province = row.province
-      this.form.city = row.city
-      this.form.area = row.area
-      this.form.address = row.address
+      this.dialogType = 'edit'
       this.dialogVisible = true;
     },
     deleteItem(row) {
@@ -185,8 +258,6 @@ export default {
         cancelButtonText: '取消',
         type: 'warning'
       }).then(action => {
-        // row.status = 0
-        // row.time_status = '已下架'
         groupTakeOff({id: row.id}).then(res => {
           console.log(this.list)
           this.$message.success('下架成功')
@@ -205,27 +276,28 @@ export default {
         if (!valid) {
           return
         }
-
-        if (this.form.province === '' || this.form.city === '' ||
-          this.form.area === '') {
-          this.$message.warning('请选择省市区')
-          return;
-        }
       })
+
+      console.log(this.form)
     },
     reset() {
       this.form = {
-        id: '',
-        account: '',
-        name: '',
-        cardId: '',
-        phoneNumber: '',
-        bank: '',
-        province: '',
-        city: '',
-        area: '',
-        address: ''
+        type: '',
+        associateCourse: undefined,
+        groupPrice: undefined,
+        groupPeople: undefined,
+        isCouTuan: undefined,
+        groupTime: undefined,
+        startEndTime: undefined
       }
+    },
+    associateCourse(){
+      this.$refs.chooseCourse.open(data => {
+        this.form.associateCourse = {}
+        this.form.associateCourse.cover = data[0].cover
+        this.form.associateCourse.title = data[0].title
+        this.form.associateCourse.price = data[0].price
+      })
     }
   }
 }

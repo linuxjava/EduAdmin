@@ -17,7 +17,7 @@ for (let i = 0; i < count; i++) {
     p_num: '@integer(1, 10)',
     'auto|1': [0, 1],
     'status|1': [0, 1],//是否已下架
-    expire: '@integer(1, 24)',
+    'expire|1': [0, 1],
     'start_time': '@now',
     'end_time': '@now',
     'created_time': '@now',

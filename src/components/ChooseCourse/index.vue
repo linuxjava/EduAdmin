@@ -109,6 +109,9 @@ export default {
   name: "ChooseCourse",
   directives: {waves},
   components: {Pagination},
+  props: {
+    isMulti: Boolean
+  },
   filters: {
     courseTypeFilter(status) {
       const statusMap = {
@@ -178,9 +181,18 @@ export default {
       this.multipleSelection = val
     },
     add() {
-      if(this.multipleSelection.length <= 0) {
-        this.$message.info('最少选择一门课程')
+      if (this.multipleSelection.length === 0) {
+        this.$message.info('请选择课程')
         return
+      }
+
+      if(this.isMulti) {
+
+      }else {
+        if (this.multipleSelection.length !== 1) {
+          this.$message.info('只能选择一门课程')
+          return
+        }
       }
 
       this.callback && this.callback(this.multipleSelection)
