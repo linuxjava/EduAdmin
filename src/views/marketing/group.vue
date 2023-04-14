@@ -102,8 +102,8 @@
         <el-form-item label="是否开启凑团" prop="isCouTuan">
           <template>
             <el-radio-group v-model="form.isCouTuan">
-              <el-radio label="0">否</el-radio>
-              <el-radio label="1">是</el-radio>
+              <el-radio :label="0">否</el-radio>
+              <el-radio :label="1">是</el-radio>
             </el-radio-group>
           </template>
         </el-form-item>
@@ -111,8 +111,8 @@
         <el-form-item label="拼团时限" required prop="expire">
           <template>
             <el-radio-group v-model="form.expire">
-              <el-radio label="0">24小时</el-radio>
-              <el-radio label="1">48小时</el-radio>
+              <el-radio :label="0">24小时</el-radio>
+              <el-radio :label="1">48小时</el-radio>
             </el-radio-group>
           </template>
         </el-form-item>
@@ -121,7 +121,9 @@
           <template>
             <el-date-picker
               v-model="form.startEndTime"
+              value-format="yyyy-MM-dd HH:mm:ss"
               type="datetimerange"
+              format="yyyy-MM-dd HH:mm:ss"
               range-separator="至"
               start-placeholder="开始日期"
               end-placeholder="结束日期">
@@ -143,7 +145,7 @@
 <script>
 import waves from '@/directive/waves' // waves directive
 import Pagination from '@/components/Pagination' // secondary package based on el-pagination
-import {fetchGroup, groupTakeOff} from '@/api/marketing'
+import {fetchGroup, groupTakeOff, groupAdd, groupEdit} from '@/api/marketing'
 import ChooseCourse from "@/components/ChooseCourse";
 
 export default {
@@ -179,13 +181,14 @@ export default {
       dialogVisible: false,
       dialogType: undefined,
       form: {
+        id: undefined,
         type: '',
         associateCourse: undefined,
         groupPrice: undefined,
         groupPeople: undefined,
         isCouTuan: undefined,
         expire: undefined,
-        startEndTime: undefined
+        startEndTime: undefined,
       },
       rules: {
         type: [
@@ -207,7 +210,7 @@ export default {
           {required: true, message: '请选择拼团时限', trigger: 'change'},
         ],
         startEndTime: [
-          {required: true, message: '请选择拼团时限', trigger: 'change'},
+          {required: true, message: '请选择拼团开始和结束时间', trigger: 'change'},
         ]
       },
     }
@@ -250,7 +253,20 @@ export default {
     },
     editItem(row) {
       this.dialogType = 'edit'
-      this.dialogVisible = true;
+      console.log(row)
+      this.form.id = row.id
+      this.form.type = row.type
+      this.form.associateCourse = {},
+      this.form.associateCourse.cover = row.value.cover
+      this.form.associateCourse.title = row.value.title
+      this.form.associateCourse.price = row.value.price
+      this.form.groupPrice = row.price
+      this.form.groupPeople = row.p_num
+      this.form.isCouTuan = row.auto
+      this.form.expire = row.expire
+      this.form.startEndTime = [row.start_time, row.end_time]
+      console.log(this.form)
+      this.dialogVisible = true
     },
     deleteItem(row) {
       this.$confirm('是否下架', '提示', {
@@ -276,19 +292,41 @@ export default {
         if (!valid) {
           return
         }
+        this.commit()
       })
-
+    },
+    async commit(){
       console.log(this.form)
+      if(this.dialogType === 'add') {
+        const res = await groupAdd(this.form)
+        this.dialogVisible = false
+        if(res.code === 20000) {
+          this.$message.success('添加成功')
+          await this.getList()
+        }else {
+          this.$message.error('添加失败')
+        }
+      }else {
+        const res = await groupEdit(this.form)
+        this.dialogVisible = false
+        if(res.code === 20000) {
+          this.$message.success('更新成功')
+          await this.getList()
+        }else {
+          this.$message.error('更新失败')
+        }
+      }
     },
     reset() {
       this.form = {
+        id: undefined,
         type: '',
         associateCourse: undefined,
         groupPrice: undefined,
         groupPeople: undefined,
         isCouTuan: undefined,
-        groupTime: undefined,
-        startEndTime: undefined
+        startEndTime: undefined,
+        expire: undefined,
       }
     },
     associateCourse(){
