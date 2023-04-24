@@ -249,6 +249,35 @@ export const asyncRoutes = [
     ]
   },
   {
+    path: '/setting',
+    component: Layout,
+    alwaysShow: true,
+    meta: {
+      title: '设置', icon: 'el-icon-setting', roles: ['admin', 'editor']
+    },
+    redirect: '/shop',
+    children: [
+      {
+        path: 'shop',
+        component: () => import('@/views/setting/shop'),
+        name: 'Shop',
+        meta: { title: '店铺设置' }
+      },
+      {
+        path: 'staff',
+        component: () => import('@/views/setting/staff'),
+        name: 'Staff',
+        meta: { title: '员工管理' }
+      },
+      {
+        path: 'role',
+        component: () => import('@/views/setting/role'),
+        name: 'Role',
+        meta: { title: '角色管理' }
+      }
+    ]
+  },
+  {
     path: '/permission',
     component: Layout,
     redirect: '/permission/page',
