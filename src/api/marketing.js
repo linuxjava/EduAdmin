@@ -32,3 +32,20 @@ export function splashAdd(data) {
 export function splashEdit(data) {
   return post('/vue-element-admin/marketing/splash/edit', data)
 }
+
+export function fetchCoupon(data){
+  return get('/vue-element-admin/marketing/coupon/list', data)
+}
+
+export function couponTakeOff(data) {
+  return get('/vue-element-admin/marketing/coupon/takeoff', data)
+}
+
+export function couponAdd(data) {
+  return post('/vue-element-admin/marketing/coupon/add', data)
+}
+
+export function couponEdit(data) {
+  return post('/vue-element-admin/marketing/coupon/edit', data)
+}
+
