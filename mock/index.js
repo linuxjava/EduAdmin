@@ -12,6 +12,7 @@ const column = require('./column')
 const myUser = require('./my_user')
 const pay = require('./pay')
 const marketing = require('./marketing')
+const setting = require('./setting')
 
 const mocks = [
   ...user,
@@ -25,6 +26,7 @@ const mocks = [
   ...myUser,
   ...pay,
   ...marketing,
+  ...setting,
 ]
 
 // for front mock
