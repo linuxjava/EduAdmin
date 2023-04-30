@@ -1,6 +1,7 @@
 const Mock = require('mockjs')
 
 let staffList = []
+let roleList = []
 const count = 20
 
 for (let i = 0; i < count; i++) {
@@ -21,6 +22,19 @@ for (let i = 0; i < count; i++) {
   })
 
   staffList.push(data)
+}
+
+for (let i = 0; i < count; i++) {
+  let data = Mock.mock({
+    id: '@increment',
+    'name|1': ['超级管理员', '运营', '开发', '产品'],
+    'role_id|1': ['admin', 'product', 'editor'],
+    desc: '@csentence(10, 20)',
+    'created_time': '@now',
+    'updated_time': '@now',
+  })
+
+  roleList.push(data)
 }
 
 module.exports = [
@@ -109,5 +123,22 @@ module.exports = [
         }
       }
     }
-  }
+  },
+  {
+    url: '/vue-element-admin/setting/role/list',
+    type: 'get',
+    response: config => {
+      const {page = 1, limit = 10} = config.query
+
+      const pageList = roleList.filter((item, index) => index < limit * page && index >= limit * (page - 1))
+
+      return {
+        code: 20000,
+        data: {
+          total: roleList.length,
+          items: pageList
+        }
+      }
+    }
+  },
 ]

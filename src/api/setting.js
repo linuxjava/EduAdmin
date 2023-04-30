@@ -15,3 +15,7 @@ export function staffAdd(data) {
 export function setRole(data) {
   return post('/vue-element-admin/setting/staff/setRole', data)
 }
+
+export function fetchRole(data){
+  return get('/vue-element-admin/setting/role/list', data)
+}
