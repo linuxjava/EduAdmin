@@ -13,6 +13,7 @@ const myUser = require('./my_user')
 const pay = require('./pay')
 const marketing = require('./marketing')
 const setting = require('./setting')
+const school = require('./school')
 
 const mocks = [
   ...user,
@@ -27,6 +28,7 @@ const mocks = [
   ...pay,
   ...marketing,
   ...setting,
+  ...school,
 ]
 
 // for front mock
