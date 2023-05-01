@@ -13,9 +13,9 @@
         <el-col :span="8" v-for="(item, index) in list" :key="index">
           <el-card class="box-card" shadow="hover" style="margin-bottom: 20px">
             <div style="display: flex;justify-content: space-between;align-items: center;">
-              {{item.name}}
+              <span style="font-size: 18px">{{item.name}}</span>
 
-              <el-button type="text" style="font-size: 16px" @click="entrySchool(item)">设置</el-button>
+              <el-button type="text" style="font-size: 16px" @click="entrySchool(item)">管理</el-button>
             </div>
           </el-card>
         </el-col>
