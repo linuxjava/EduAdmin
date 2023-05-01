@@ -40,17 +40,6 @@ import nestedRouter from './modules/nested'
  */
 export const constantRoutes = [
   {
-    path: '/redirect',
-    component: Layout,
-    hidden: true,
-    children: [
-      {
-        path: '/redirect/:path(.*)',
-        component: () => import('@/views/redirect/index')
-      }
-    ]
-  },
-  {
     path: '/login',
     component: () => import('@/views/login/index'),
     hidden: true
@@ -59,6 +48,18 @@ export const constantRoutes = [
     path: '/',
     component: () => import('@/views/school/index'),
     hidden: true
+  },
+  {
+    path: '/redirect',
+    component: Layout,
+    hidden: true,
+    children: [
+      {
+        //动态路由,将匹配所有内容并将其放在 `$route.params.path` 下
+        path: '/redirect/:path(.*)',
+        component: () => import('@/views/redirect/index')
+      }
+    ]
   },
   {
     path: '/auth-redirect',

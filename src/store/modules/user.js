@@ -1,4 +1,4 @@
-import { login, logout, getInfo } from '@/api/user'
+import { login, register, logout, getInfo } from '@/api/user'
 import { getToken, setToken, removeToken } from '@/utils/auth'
 import router, { resetRouter } from '@/router'
 
@@ -7,7 +7,8 @@ const state = {
   name: '',
   avatar: '',
   introduction: '',
-  roles: []
+  roles: [],
+  menus: []
 }
 
 const mutations = {
@@ -25,6 +26,9 @@ const mutations = {
   },
   SET_ROLES: (state, roles) => {
     state.roles = roles
+  },
+  SET_MENUS: (state, menus) => {
+    state.menus = menus
   }
 }
 
@@ -43,6 +47,17 @@ const actions = {
       })
     })
   },
+  //注册
+  register({commit}, userInfo){
+    const { username, password, repassword } = userInfo
+    return new Promise((resolve, reject) => {
+      register({ username: username.trim(), password, repassword }).then(response => {
+        resolve()
+      }).catch(error => {
+        reject(error)
+      })
+    })
+  },
 
   // get user info
   getInfo({ commit, state }) {
@@ -54,14 +69,15 @@ const actions = {
           reject('Verification failed, please Login again.')
         }
 
-        const { roles, name, avatar, introduction } = data
+        const { roles, menus, name, avatar, introduction } = data
 
-        // roles must be a non-empty array
-        if (!roles || roles.length <= 0) {
-          reject('getInfo: roles must be a non-null array!')
-        }
+        // // roles must be a non-empty array
+        // if (!roles || roles.length <= 0) {
+        //   reject('getInfo: roles must be a non-null array!')
+        // }
 
         commit('SET_ROLES', roles)
+        commit('SET_MENUS', menus)
         commit('SET_NAME', name)
         commit('SET_AVATAR', avatar)
         commit('SET_INTRODUCTION', introduction)
@@ -78,6 +94,7 @@ const actions = {
       logout(state.token).then(() => {
         commit('SET_TOKEN', '')
         commit('SET_ROLES', [])
+        commit('SET_MENUS', [])
         removeToken()
         resetRouter()
 
@@ -97,6 +114,7 @@ const actions = {
     return new Promise(resolve => {
       commit('SET_TOKEN', '')
       commit('SET_ROLES', [])
+      commit('SET_MENUS', [])
       removeToken()
       resolve()
     })

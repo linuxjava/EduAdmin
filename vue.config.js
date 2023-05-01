@@ -37,7 +37,17 @@ module.exports = {
       warnings: false,
       errors: true
     },
-    before: require('./mock/mock-server.js')
+    // before: require('./mock/mock-server.js')
+    proxy: {
+      '/dev-api' : {
+        target: 'http://demonuxtapi.dishait.cn/',
+        ws: true, // proxy websockets
+        changeOrigin: true, // 是否跨域
+        pathRewrite: { //重写路径
+          '^/dev-api': ''
+        }
+      }
+    }
   },
   configureWebpack: {
     // provide the app's title in webpack's name field, so that

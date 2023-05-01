@@ -19,13 +19,13 @@ service.interceptors.request.use(
       // let each request carry token
       // ['X-Token'] is a custom headers key
       // please modify it according to the actual situation
-      config.headers['X-Token'] = getToken()
+      config.headers['token'] = getToken()
     }
     return config
   },
   error => {
     // do something with request error
-    console.log(error) // for debug
+    console.log('request error', error) // for debug
     return Promise.reject(error)
   }
 )
@@ -48,7 +48,7 @@ service.interceptors.response.use(
     // if the custom code is not 20000, it is judged as an error.
     if (res.code !== 20000) {
       Message({
-        message: res.message || 'Error',
+        message: res.msg || 'Error',
         type: 'error',
         duration: 5 * 1000
       })
@@ -66,15 +66,15 @@ service.interceptors.response.use(
           })
         })
       }
-      return Promise.reject(new Error(res.message || 'Error'))
+      return Promise.reject(new Error(res.msg || 'Error'))
     } else {
       return res
     }
   },
   error => {
-    console.log('err' + error) // for debug
+    console.log('response err', error) // for debug
     Message({
-      message: error.message,
+      message: error.msg || "Server Response Error",
       type: 'error',
       duration: 5 * 1000
     })
