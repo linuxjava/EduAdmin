@@ -49,6 +49,7 @@ import Navbar from '@/layout/components/Navbar'
 import waves from '@/directive/waves' // waves directive
 import Pagination from '@/components/Pagination' // secondary package based on el-pagination
 import {fetchSchool, addSchool} from '@/api/school'
+import {setSchoolId} from '@/utils/auth'
 import {staffAdd} from "@/api/setting";
 export default {
   name: "school",
@@ -91,6 +92,7 @@ export default {
       this.dialogVisible = true
     },
     entrySchool(item){
+      setSchoolId(item.id)
       this.$router.push({ path: '/dashboard/index' })
     },
     closeDialog() {

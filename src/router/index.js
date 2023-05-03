@@ -130,10 +130,6 @@ export const constantRoutes = [
   // }
 ]
 
-/**
- * asyncRoutes
- * the routes that need to be dynamically loaded based on user roles
- */
 export const asyncRoutes = [
   {
     path: '/course',
@@ -541,6 +537,117 @@ export const asyncRoutes = [
   // 404 page must be placed at the end !!!
   { path: '*', redirect: '/404', hidden: true }
 ]
+
+//是否使用手动补齐User子菜单的方式
+export const isUsePaddingMethod = true
+
+/**
+ * asyncRoutes
+ * the routes that need to be dynamically loaded based on user roles
+ */
+export const routesMenus = [
+  {
+    path: 'media',
+    component: () => import('@/views/course/media'),
+    name: 'Media',
+    meta: { title: '图文' }
+  },
+  {
+    path: 'audio',
+    component: () => import('@/views/course/audio'),
+    name: 'Audio',
+    meta: { title: '音频' }
+  },
+  {
+    path: 'video',
+    component: () => import('@/views/course/video'),
+    name: 'Video',
+    meta: { title: '视频' }
+  },
+  {
+    path: 'column',
+    component: () => import('@/views/course/column'),
+    name: 'Column',
+    meta: { title: '专栏' }
+  },
+  {
+    path: 'column_detail',
+    component: () => import('@/views/course/column_detail'),
+    name: 'ColumnDetail',
+    hidden: true,
+    meta: { title: '专栏详情' }
+  },
+  {
+    path: 'order',
+    component: () => import('@/views/my-pay/order'),
+    name: 'Order',
+    meta: { title: '订单管理' }
+  },
+  {
+    path: 'asset',
+    component: () => import('@/views/my-pay/asset'),
+    name: 'Assets',
+    meta: { title: '资产管理' }
+  },
+  {
+    path: 'payment',
+    component: () => import('@/views/my-pay/payment'),
+    name: 'Payment',
+    meta: { title: '支付设置' }
+  },
+  {
+    path: 'group',
+    component: () => import('@/views/marketing/group'),
+    name: 'Group',
+    meta: { title: '拼团' }
+  },
+  {
+    path: 'splashsale',
+    component: () => import('@/views/marketing/splashsale'),
+    name: 'Flashsale',
+    meta: { title: '秒杀' }
+  },
+  {
+    path: 'coupon',
+    component: () => import('@/views/marketing/coupon'),
+    name: 'Coupon',
+    meta: { title: '优惠券' }
+  },
+  {
+    path: 'shop',
+    component: () => import('@/views/setting/shop'),
+    name: 'SettingIndex',
+    meta: { title: '店铺设置' }
+  },
+  {
+    path: 'staff',
+    component: () => import('@/views/setting/staff'),
+    name: 'Staffs',
+    meta: { title: '员工管理' }
+  },
+  {
+    path: 'role',
+    component: () => import('@/views/setting/role'),
+    name: 'Role',
+    meta: { title: '角色管理' }
+  }
+]
+
+if(isUsePaddingMethod) {
+  routesMenus.push({
+    path: 'my_user',
+    component: () => import('@/views/user/user'),
+    name: 'MyUser',
+    meta: { title: '用户' }
+  })
+}else {
+  routesMenus.push({
+    path: 'user',
+    component: () => import('@/views/user/user'),
+    name: 'User',
+    meta: { title: '用户' }
+  })
+}
 
 const createRouter = () => new Router({
   // mode: 'history', // require service support

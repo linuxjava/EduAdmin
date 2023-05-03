@@ -12,11 +12,11 @@
 
         <error-log class="errLog-container right-menu-item hover-effect" />
 
-        <screenfull v-if="isShowMenu" id="screenfull" class="right-menu-item hover-effect" />
+<!--        <screenfull v-if="isShowMenu" id="screenfull" class="right-menu-item hover-effect" />-->
 
-        <el-tooltip v-if="isShowMenu" content="Global Size" effect="dark" placement="bottom">
+<!--        <el-tooltip v-if="isShowMenu" content="Global Size" effect="dark" placement="bottom">
           <size-select id="size-select" class="right-menu-item hover-effect" />
-        </el-tooltip>
+        </el-tooltip>-->
 
       </template>
 

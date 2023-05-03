@@ -1,7 +1,7 @@
 import axios from 'axios'
 import { MessageBox, Message } from 'element-ui'
 import store from '@/store'
-import { getToken } from '@/utils/auth'
+import { getToken, getSchoolId } from '@/utils/auth'
 
 // create an axios instance
 const service = axios.create({
@@ -20,6 +20,10 @@ service.interceptors.request.use(
       // ['X-Token'] is a custom headers key
       // please modify it according to the actual situation
       config.headers['token'] = getToken()
+    }
+    const schoolId = getSchoolId()
+    if(schoolId) {
+      config.headers['schoolid'] = schoolId
     }
     return config
   },
@@ -48,7 +52,7 @@ service.interceptors.response.use(
     // if the custom code is not 20000, it is judged as an error.
     if (res.code !== 20000) {
       Message({
-        message: res.msg || 'Error',
+        message: (res.msg + ': ' + res.data) || 'Error',
         type: 'error',
         duration: 5 * 1000
       })
@@ -66,7 +70,7 @@ service.interceptors.response.use(
           })
         })
       }
-      return Promise.reject(new Error(res.msg || 'Error'))
+      return Promise.reject(new Error((res.msg + ': ' + res.data) || 'Error'))
     } else {
       return res
     }
@@ -74,7 +78,7 @@ service.interceptors.response.use(
   error => {
     console.log('response err', error) // for debug
     Message({
-      message: error.msg || "Server Response Error",
+      message: (error.msg + ': ' + error.data) || "Server Response Error",
       type: 'error',
       duration: 5 * 1000
     })
