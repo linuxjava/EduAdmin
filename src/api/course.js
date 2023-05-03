@@ -8,9 +8,9 @@ export function fetchList(query) {
   })
 }
 
-export function createMedia(data) {
+export function create(data) {
   return request({
-    url: '/vue-element-admin/media/create',
+    url: '/admin/s/course/save',
     method: 'post',
     data
   })

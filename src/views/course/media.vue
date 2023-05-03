@@ -61,7 +61,7 @@
 
       <el-table-column label="订阅量" width="110px" align="center">
         <template slot-scope="{row}">
-          <span>{{ row.subscription }}</span>
+          <span>{{ row.sub_count }}</span>
         </template>
       </el-table-column>
 
@@ -120,11 +120,15 @@
         <el-form-item label="封面">
           <!--图片上传组件-->
           <el-upload
-            action="https://jsonplaceholder.typicode.com/posts/"
+            :action="uploadOptions.action"
             list-type="picture-card"
+            :on-exceed="onExceed"
             :on-preview="handlePictureCardPreview"
             :on-remove="handleRemove"
-            :on-success="handleUploadSuccess">
+            :on-success="handleUploadSuccess"
+            :headers="uploadOptions.header"
+            :limit="1"
+            :file-list="fileList">
             <i class="el-icon-plus"></i>
           </el-upload>
           <!--图片预览Dialog-->
@@ -169,9 +173,11 @@
 <script>
 import waves from '@/directive/waves' // waves directive
 import Pagination from '@/components/Pagination' // secondary package based on el-pagination
-import {fetchList, createMedia, updateMedia} from '@/api/media'
+import {createMedia, updateMedia} from '@/api/media'
+import {fetchList, create} from '@/api/course'
 import Tinymce from '@/components/Tinymce'
 import {getYmdHmsTimeStr} from '@/utils'
+import {uploadOptions} from '@/utils/upload'
 
 export default {
   name: 'Media',
@@ -188,6 +194,7 @@ export default {
   },
   data() {
     return {
+      uploadOptions,
       tableKey: 0,
       list: undefined,
       total: 0,
@@ -196,7 +203,7 @@ export default {
         limit: 10,
         status: undefined,
         title: undefined,
-        type: undefined,
+        type: 'media',
         sort: '+id'
       },
       listLoading: true,
@@ -206,11 +213,13 @@ export default {
       //添加和修改商品表单数据
       productForm: {
         id: undefined,
-        cover: 'https://wpimg.wallstcn.com/f778738c-e4f8-4870-b634-56703b4acafe.gif?imageView2/1/w/80/h/80',
+        cover: '',
         title: '',
         try: '',
         content: '',
         price: undefined,
+        t_price: 0,
+        type: 'media',
         //status初始值设置为undefined才能进行校验
         status: undefined
       },
@@ -236,6 +245,7 @@ export default {
       newCoverUrl: '',
       preDialogImageUrl: '',
       preDialogVisible: false,
+      fileList: []
     }
   },
   mounted() {
@@ -320,6 +330,10 @@ export default {
       this.dialogStatus = 'create'
       this.dialogVisible = true
     },
+    //文件超出个数限制时的钩子
+    onExceed(files, fileList){
+      this.$message.info('只允许上传一张封面')
+    },
     //删除图片
     handleRemove(file, fileList) {
       console.log(file, fileList);
@@ -332,29 +346,40 @@ export default {
     //图片上传成功
     handleUploadSuccess(response, file, fileList) {
       console.log(response, file, fileList)
+      if(response.msg === 'ok' && response.code === 20000) {
+        this.productForm.cover = response.data
+      } else {
+        // this.fileList = fileList
+        this.$message.error('上传失败: ' + response.msg);
+      }
     },
     //打开新增文章对话框
     openedDialog() {
       //需要使用opened事件，不能是open事件，因为open事件时$refs还未创建
       if (this.dialogStatus === 'create') {
         //如果是创建media则清空上次数据
+        //清除图片数据
+        this.fileList = []
         //清除表单内容
         this.$refs['productForm'].resetFields();
-        //清空富文本内容
-        this.$refs.tryTinymce.setContent('')
-        this.$refs.contentTinymce.setContent('')
+        this.$nextTick(() => {
+          //清空富文本内容
+          this.$refs.tryTinymce.setContent('')
+          this.$refs.contentTinymce.setContent('')
+        })
+
       }
     },
     //新增文章
     createMedia(formName) {
       this.$refs[formName].validate((valid) => {
         if (valid) {
-          this.productForm.id = parseInt(Math.random() * 100) + 1024
-          this.productForm.created_time = getYmdHmsTimeStr()
-          this.productForm.updated_time = getYmdHmsTimeStr()
-          this.productForm.subscription = 0
-          createMedia(this.productForm).then(() => {
-            this.list.unshift(this.productForm)
+          // this.productForm.id = parseInt(Math.random() * 100) + 1024
+          // this.productForm.created_time = getYmdHmsTimeStr()
+          // this.productForm.updated_time = getYmdHmsTimeStr()
+          // this.productForm.subscription = 0
+          create(this.productForm).then(() => {
+            this.getList()
             this.dialogVisible = false;
             this.$notify({
               message: '',

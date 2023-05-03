@@ -24,7 +24,6 @@ function checkPermission(el, binding) {
 function checkPermissionNew(el, binding) {
   const { value } = binding
   const accesses = store.getters && store.getters.accesses
-  console.log(el, value)
   if (value && value.length > 0) {
     if(!accesses.includes(value)){
       //如果不具备这个权限，则将el移除
