@@ -8,7 +8,8 @@ const state = {
   avatar: '',
   introduction: '',
   roles: [],
-  menus: []
+  menus: [],
+  accesses: [],
 }
 
 const mutations = {
@@ -29,6 +30,9 @@ const mutations = {
   },
   SET_MENUS: (state, menus) => {
     state.menus = menus
+  },
+  SET_ACCESSES: (state, accesses) => {
+    state.accesses = accesses
   }
 }
 
@@ -69,7 +73,7 @@ const actions = {
           reject('Verification failed, please Login again.')
         }
 
-        const { roles, menus, name, avatar, introduction } = data
+        const { roles, menus, accesses, name, avatar, introduction } = data
 
         // // roles must be a non-empty array
         // if (!roles || roles.length <= 0) {
@@ -78,6 +82,7 @@ const actions = {
 
         commit('SET_ROLES', roles)
         commit('SET_MENUS', menus)
+        commit('SET_ACCESSES', accesses)
         commit('SET_NAME', name)
         commit('SET_AVATAR', avatar)
         commit('SET_INTRODUCTION', introduction)
@@ -95,6 +100,7 @@ const actions = {
         commit('SET_TOKEN', '')
         commit('SET_ROLES', [])
         commit('SET_MENUS', [])
+        commit('SET_ACCESSES', [])
         removeToken()
         removeSchoolId()
         resetRouter()
@@ -116,6 +122,7 @@ const actions = {
       commit('SET_TOKEN', '')
       commit('SET_ROLES', [])
       commit('SET_MENUS', [])
+      commit('SET_ACCESSES', [])
       removeToken()
       removeSchoolId()
       resolve()

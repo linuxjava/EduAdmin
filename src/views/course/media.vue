@@ -5,7 +5,9 @@
   <div class="app-container">
     <!--搜索和新增-->
     <div class="filter-container" style="display: flex;justify-content: space-between">
-      <el-button class="filter-item" type="primary" icon="el-icon-edit" @click="showDialog">新增图文</el-button>
+      <div>
+        <el-button class="filter-item" type="primary" icon="el-icon-edit" @click="showDialog" v-permission="'/admin/s/course/save,POST'">新增图文</el-button>
+      </div>
       <div>
         <el-select
           v-model="listQuery.status"

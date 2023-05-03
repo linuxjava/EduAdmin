@@ -21,11 +21,25 @@ function checkPermission(el, binding) {
   }
 }
 
+function checkPermissionNew(el, binding) {
+  const { value } = binding
+  const accesses = store.getters && store.getters.accesses
+  console.log(el, value)
+  if (value && value.length > 0) {
+    if(!accesses.includes(value)){
+      //如果不具备这个权限，则将el移除
+      el.parentNode && el.parentNode.removeChild(el)
+    }
+  } else {
+    throw new Error(`need permission! Like v-permission="'/admin/s/course/save,POST'"`)
+  }
+}
+
 export default {
   inserted(el, binding) {
-    checkPermission(el, binding)
+    checkPermissionNew(el, binding)
   },
   update(el, binding) {
-    checkPermission(el, binding)
+    checkPermissionNew(el, binding)
   }
 }
