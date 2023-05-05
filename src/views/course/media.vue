@@ -75,13 +75,13 @@
 
       <el-table-column label="创建时间" width="180px" align="center">
         <template slot-scope="{row}">
-          <span>{{ row.created_time }}</span>
+          <span>{{ row.created_time | timeFilter }}</span>
         </template>
       </el-table-column>
 
       <el-table-column label="更新时间" width="180px" align="center">
         <template slot-scope="{row}">
-          <span>{{ row.updated_time }}</span>
+          <span>{{ row.updated_time | timeFilter}}</span>
         </template>
       </el-table-column>
 
@@ -176,7 +176,7 @@ import Pagination from '@/components/Pagination' // secondary package based on e
 import {createMedia, updateMedia} from '@/api/media'
 import {fetchList, create} from '@/api/course'
 import Tinymce from '@/components/Tinymce'
-import {getYmdHmsTimeStr} from '@/utils'
+import {getYmdHmsTimeStr, parseTime} from '@/utils'
 import {uploadOptions} from '@/utils/upload'
 
 export default {
@@ -190,6 +190,10 @@ export default {
         '0': 'info'
       }
       return statusMap[status]
+    },
+    timeFilter(time) {
+      let date = new Date(time)
+      return parseTime(date.getTime(), '{y}-{m}-{d} {h}:{i}:{s}')
     }
   },
   data() {

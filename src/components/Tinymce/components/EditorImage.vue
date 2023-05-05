@@ -3,7 +3,7 @@
     <el-button :style="{background:color,borderColor:color}" icon="el-icon-upload" size="mini" type="primary" @click=" dialogVisible=true">
       upload
     </el-button>
-    <el-dialog :visible.sync="dialogVisible">
+    <el-dialog :visible.sync="dialogVisible" append-to-body>
       <el-upload
         :multiple="true"
         :file-list="fileList"
@@ -11,10 +11,10 @@
         :on-remove="handleRemove"
         :on-success="handleSuccess"
         :before-upload="beforeUpload"
+        :action="uploadOptions.action"
+        :headers="uploadOptions.header"
         class="editor-slide-upload"
-        action="https://httpbin.org/post"
-        list-type="picture-card"
-      >
+        list-type="picture-card">
         <el-button size="small" type="primary">
           Click upload
         </el-button>
@@ -31,6 +31,7 @@
 
 <script>
 // import { getToken } from 'api/qiniu'
+import {uploadOptions} from '@/utils/upload'
 
 export default {
   name: 'EditorSlideUpload',
@@ -42,6 +43,7 @@ export default {
   },
   data() {
     return {
+      uploadOptions,
       dialogVisible: false,
       listObj: {},
       fileList: []
@@ -67,7 +69,7 @@ export default {
       const objKeyArr = Object.keys(this.listObj)
       for (let i = 0, len = objKeyArr.length; i < len; i++) {
         if (this.listObj[objKeyArr[i]].uid === uid) {
-          this.listObj[objKeyArr[i]].url = response.files.file
+          this.listObj[objKeyArr[i]].url = response.data
           this.listObj[objKeyArr[i]].hasSuccess = true
           return
         }
