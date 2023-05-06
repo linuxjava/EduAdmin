@@ -1,19 +1,12 @@
 import request from '@/utils/request'
+import {get, post} from "@/api/request-common";
 
 export function fetchList(query) {
-  return request({
-    url: '/admin/s/course',
-    method: 'get',
-    params: query
-  })
+  return get('/admin/s/course', query)
 }
 
 export function create(data) {
-  return request({
-    url: '/admin/s/course/save',
-    method: 'post',
-    data
-  })
+  return post('/admin/s/course/save', data)
 }
 
 export function updateMedia(data) {
@@ -22,4 +15,8 @@ export function updateMedia(data) {
     method: 'post',
     data
   })
+}
+
+export function deleteCourse(data) {
+  return post('/admin/s/course/delete', data)
 }

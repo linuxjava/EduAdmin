@@ -174,7 +174,7 @@
 import waves from '@/directive/waves' // waves directive
 import Pagination from '@/components/Pagination' // secondary package based on el-pagination
 import {createMedia, updateMedia} from '@/api/media'
-import {fetchList, create} from '@/api/course'
+import {fetchList, create, deleteCourse} from '@/api/course'
 import Tinymce from '@/components/Tinymce'
 import {getYmdHmsTimeStr, parseTime} from '@/utils'
 import {uploadOptions} from '@/utils/upload'
@@ -320,14 +320,26 @@ export default {
       })
     },
     //删除记录
-    handleDelete(row, index) {
-      this.$notify({
-        title: '提示',
-        message: '删除成功',
-        type: 'success',
-        duration: 2000
+    async handleDelete(row, index) {
+      let res = await deleteCourse({
+        ids: [row.id]
       })
-      this.list.splice(index, 1)
+      if(res.code === 20000) {
+        this.getList()
+        this.$notify({
+          title: '提示',
+          message: '删除成功',
+          type: 'success',
+          duration: 2000
+        })
+      }else {
+        this.$notify({
+          title: '提示',
+          message: res.msg,
+          type: 'error',
+          duration: 2000
+        })
+      }
     },
     //新增media
     showDialog() {
