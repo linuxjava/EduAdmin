@@ -100,9 +100,10 @@
 
 <script>
 import waves from '@/directive/waves' // waves directive
-import {fetchList as fetchMediaList} from '@/api/media'
-import {fetchList as fetchAudioList} from '@/api/audio'
-import {fetchList as fetchVideoList} from '@/api/video'
+// import {fetchList as fetchMediaList} from '@/api/media'
+// import {fetchList as fetchAudioList} from '@/api/audio'
+// import {fetchList as fetchVideoList} from '@/api/video'
+import {fetchList} from '@/api/course'
 import Pagination from '@/components/Pagination' // secondary package based on el-pagination
 
 export default {
@@ -154,13 +155,16 @@ export default {
       this.handleMenuSelect(this.$refs.menu.activeIndex, null)
     },
     handleMenuSelect(key, keyPath){
-      let method = undefined
+      let method = fetchList
       if(key == 1) {
-        method = fetchMediaList
+        // method = fetchMediaList
+        this.list.type = 'media'
       }else if(key == 2) {
-        method = fetchAudioList
+        // method = fetchAudioList
+        this.list.type = 'audio'
       }else if(key == 3) {
-        method = fetchVideoList
+        // method = fetchVideoList
+        this.list.type = 'video'
       }
 
 

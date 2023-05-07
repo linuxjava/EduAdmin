@@ -9,14 +9,14 @@ export function create(data) {
   return post('/admin/s/course/save', data)
 }
 
-export function updateMedia(data) {
-  return request({
-    url: '/vue-element-admin/media/update',
-    method: 'post',
-    data
-  })
+export function update(data) {
+  return post('/admin/s/course/update', data)
 }
 
-export function deleteCourse(data) {
+export function remove(data) {
   return post('/admin/s/course/delete', data)
+}
+
+export function updateStatus(data){
+  return post("/admin/s/course/updatestatus", data)
 }

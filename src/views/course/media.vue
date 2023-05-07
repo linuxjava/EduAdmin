@@ -13,17 +13,16 @@
           v-model="listQuery.status"
           placeholder="商品状态"
           clearable
+          @clear="getList"
           style="width: 110px;margin-right: 10px"
-          class="filter-item"
-        >
+          class="filter-item">
           <el-option v-for="(item, k) in statusOptions" :key="k" :label="item" :value="k"/>
         </el-select>
         <el-input
           v-model="listQuery.title"
           placeholder="Title"
           style="width: 200px;margin-right: 10px"
-          class="filter-item"
-        />
+          class="filter-item"/>
         <el-button v-waves class="filter-item" type="primary" icon="el-icon-search" @click="search">搜索</el-button>
       </div>
     </div>
@@ -151,8 +150,8 @@
 
         <el-form-item label="商品状态" required prop="status">
           <el-radio-group v-model="productForm.status">
-            <el-radio label="1">上架</el-radio>
-            <el-radio label="0">下架</el-radio>
+            <el-radio :label="1">上架</el-radio>
+            <el-radio :label="0">下架</el-radio>
           </el-radio-group>
         </el-form-item>
 
@@ -163,7 +162,8 @@
       <span style="display:block;text-align: center">
         <el-button @click="cancelMediaForm('productForm')">取 消</el-button>
         <el-button type="primary"
-                   @click="dialogStatus === 'create' ? createMedia('productForm') : updateMedia('productForm')">提 交</el-button>
+                   @click="dialogStatus === 'create' ? createMedia('productForm') : updateMedia('productForm')"
+                   :loading="btnLoading">{{btnLoading ? '提交中...' : '提 交'}}</el-button>
       </span>
     </el-dialog>
 
@@ -173,10 +173,9 @@
 <script>
 import waves from '@/directive/waves' // waves directive
 import Pagination from '@/components/Pagination' // secondary package based on el-pagination
-import {createMedia, updateMedia} from '@/api/media'
-import {fetchList, create, deleteCourse} from '@/api/course'
+import {fetchList, create, update, remove, updateStatus} from '@/api/course'
 import Tinymce from '@/components/Tinymce'
-import {getYmdHmsTimeStr, parseTime} from '@/utils'
+import {parseTime} from '@/utils'
 import {uploadOptions} from '@/utils/upload'
 
 export default {
@@ -249,7 +248,8 @@ export default {
       newCoverUrl: '',
       preDialogImageUrl: '',
       preDialogVisible: false,
-      fileList: []
+      fileList: [],
+      btnLoading: false
     }
   },
   mounted() {
@@ -313,33 +313,27 @@ export default {
     },
     //改变商品状态
     changeProductStatus(row, status) {
-      row.status = status
-      this.$message({
-        message: '操作成功',
-        type: "success"
-      })
+      const msg = '此操作将' + (status === 1 ? '上架' : '下架') + '课程, 是否继续?'
+      this.$confirm(msg, '提示', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }).then(async () => {
+        let res = await updateStatus({
+          id: row.id,
+          status
+        })
+        this.getList()
+        this.$message.success('更新成功')
+      });
     },
     //删除记录
     async handleDelete(row, index) {
-      let res = await deleteCourse({
+      let res = await remove({
         ids: [row.id]
       })
-      if(res.code === 20000) {
-        this.getList()
-        this.$notify({
-          title: '提示',
-          message: '删除成功',
-          type: 'success',
-          duration: 2000
-        })
-      }else {
-        this.$notify({
-          title: '提示',
-          message: res.msg,
-          type: 'error',
-          duration: 2000
-        })
-      }
+      this.getList()
+      this.$notify.success('删除成功');
     },
     //新增media
     showDialog() {
@@ -361,7 +355,6 @@ export default {
     },
     //图片上传成功
     handleUploadSuccess(response, file, fileList) {
-      console.log(response, file, fileList)
       if(response.msg === 'ok' && response.code === 20000) {
         this.productForm.cover = response.data
       } else {
@@ -383,27 +376,18 @@ export default {
           this.$refs.tryTinymce.setContent('')
           this.$refs.contentTinymce.setContent('')
         })
-
       }
     },
     //新增文章
     createMedia(formName) {
-      this.$refs[formName].validate((valid) => {
+      this.$refs[formName].validate(async (valid) => {
         if (valid) {
-          // this.productForm.id = parseInt(Math.random() * 100) + 1024
-          // this.productForm.created_time = getYmdHmsTimeStr()
-          // this.productForm.updated_time = getYmdHmsTimeStr()
-          // this.productForm.subscription = 0
-          create(this.productForm).then(() => {
-            this.getList()
-            this.dialogVisible = false;
-            this.$notify({
-              message: '',
-              type: "success",
-              title: '成功',
-              duration: 2000
-            })
-          })
+          this.btnLoading = true
+          await create(this.productForm)
+          this.btnLoading = false
+          this.dialogVisible = false;
+          this.getList()
+          this.$notify.success('创建成功')
         }
       })
     },
@@ -415,25 +399,22 @@ export default {
     editMedia(row) {
       this.dialogStatus = 'edit'
       this.productForm = Object.assign({}, row)
+      this.fileList = [{
+        name: row.cover,
+        url: row.cover
+      }]
       this.dialogVisible = true;
     },
     //更新media
     updateMedia(formName) {
-      this.$refs[formName].validate((valid) => {
+      this.$refs[formName].validate(async (valid) => {
         if (valid) {
-          let temp = Object.assign({}, this.productForm)
-          temp.updated_time = getYmdHmsTimeStr()
-          updateMedia(temp).then(() => {
-            let index = this.list.findIndex(item => item.id === temp.id)
-            this.list.splice(index, 1, temp)
-            this.dialogVisible = false
-            this.$notify({
-              type: "success",
-              title: '成功',
-              message: '更新成功',
-              duration: 2000
-            })
-          })
+          this.btnLoading = true
+          await update(this.productForm)
+          this.btnLoading = false
+          this.dialogVisible = false
+          this.$message.success('更新成功');
+          this.getList()
         }
       })
     }
