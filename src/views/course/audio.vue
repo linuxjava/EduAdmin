@@ -118,11 +118,13 @@
         <el-form-item label="封面">
           <!--图片上传组件-->
           <el-upload
-            action="https://jsonplaceholder.typicode.com/posts/"
+            :action="uploadOptions.action"
+            :headers="uploadOptions.header"
             list-type="picture-card"
             :on-preview="handlePictureCardPreview"
             :on-remove="handleCoverRemove"
-            :on-success="handleUploadSuccess">
+            :on-success="handleUploadSuccess"
+            :file-list="coverFileList">
             <i class="el-icon-plus"></i>
           </el-upload>
           <!--图片预览Dialog-->
@@ -131,16 +133,17 @@
           </el-dialog>
         </el-form-item>
 
-        <el-form-item label="课程介绍" required prop="introduce">
+        <el-form-item label="课程介绍" required prop="try">
           <template>
-            <tinymce ref="introduceTinymce" v-model="productForm.introduce" :height="300" :width="600"/>
+            <tinymce ref="introduceTinymce" v-model="productForm.try" :height="300" :width="600"/>
           </template>
         </el-form-item>
 
         <el-form-item label="课程内容" required prop="content">
           <template>
             <el-upload
-              action="https://jsonplaceholder.typicode.com/posts/"
+              :action="uploadOptions.action"
+              :headers="uploadOptions.header"
               :on-remove="handleAudioRemove"
               :limit="1"
               style="width: 600px"
@@ -154,8 +157,8 @@
 
         <el-form-item label="商品状态" required prop="status">
           <el-radio-group v-model="productForm.status">
-            <el-radio label="1">上架</el-radio>
-            <el-radio label="0">下架</el-radio>
+            <el-radio :label="1">上架</el-radio>
+            <el-radio :label="0">下架</el-radio>
           </el-radio-group>
         </el-form-item>
 
@@ -176,9 +179,11 @@
 <script>
 import waves from '@/directive/waves' // waves directive
 import Pagination from '@/components/Pagination' // secondary package based on el-pagination
-import {fetchList, createAudio, updateAudio} from '@/api/audio'
+import {createAudio, updateAudio} from '@/api/audio'
+import {fetchList, create, update, remove, updateStatus} from '@/api/course'
 import Tinymce from '@/components/Tinymce'
 import {getYmdHmsTimeStr} from '@/utils'
+import {uploadOptions} from '@/utils/upload'
 
 export default {
   name: 'Audio',
@@ -195,6 +200,7 @@ export default {
   },
   data() {
     return {
+      uploadOptions,
       tableKey: 0,
       list: undefined,
       total: 0,
@@ -203,7 +209,7 @@ export default {
         limit: 10,
         status: undefined,
         title: undefined,
-        type: undefined,
+        type: 'audio',
         sort: '+id'
       },
       listLoading: true,
@@ -213,11 +219,13 @@ export default {
       //添加和修改商品表单数据
       productForm: {
         id: undefined,
-        cover: 'https://wpimg.wallstcn.com/f778738c-e4f8-4870-b634-56703b4acafe.gif?imageView2/1/w/80/h/80',
+        cover: '',
         title: '',
-        introduce: '',
+        try: '',
         fileList: [],
         price: undefined,
+        t_price: 0,
+        type: 'audio',
         //status初始值设置为undefined才能进行校验
         status: undefined
       },
@@ -227,7 +235,7 @@ export default {
           {required: true, message: '请输入商品名称', trigger: 'blur'},
           {min: 3, max: 5, message: '长度在 3 到 10 个字符', trigger: 'blur'}
         ],
-        introduce: [
+        try: [
           {required: true, message: '请输入课程介绍', trigger: 'blur'},
         ],
         content: [
@@ -243,6 +251,8 @@ export default {
       newCoverUrl: '',
       preDialogImageUrl: '',
       preDialogVisible: false,
+      coverFileList: [],
+      audioFileList: [],
     }
   },
   mounted() {
@@ -268,13 +278,12 @@ export default {
         this.$router.replace({path: '/'})
       }
     },
-    getList() {
+    async getList() {
       this.listLoading = true
-      fetchList(this.listQuery).then(response => {
-        this.list = response.data.items
-        this.total = response.data.total
-        this.listLoading = false
-      })
+      let res = await fetchList(this.listQuery)
+      this.list = res.data.items
+      this.total = res.data.total
+      this.listLoading = false
     },
     //Id排序start
     getSortClass: function (key) {
@@ -283,7 +292,6 @@ export default {
     },
     sortChange(data) {
       const {prop, order} = data
-      console.log('order', order)
       if (prop === 'id') {
         this.sortByID(order)
       }
@@ -323,7 +331,12 @@ export default {
     },
     //封面上传成功
     handleUploadSuccess(response, file, fileList) {
-      console.log(response, file, fileList)
+      if(response.msg === 'ok' && response.code === 20000) {
+        this.productForm.cover = response.data
+      } else {
+        // this.fileList = fileList
+        this.$message.error('上传失败: ' + response.msg);
+      }
     },
     //音频删除
     handleAudioRemove(file, fileList) {
