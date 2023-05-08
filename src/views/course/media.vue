@@ -20,7 +20,7 @@
         </el-select>
         <el-input
           v-model="listQuery.title"
-          placeholder="Title"
+          placeholder="请输入搜索内容"
           style="width: 200px;margin-right: 10px"
           class="filter-item"/>
         <el-button v-waves class="filter-item" type="primary" icon="el-icon-search" @click="search">搜索</el-button>
@@ -47,8 +47,7 @@
           <div style="display: flex">
             <img
               :src="row.cover"
-              style="width: 100px;height: 50px"
-            >
+              style="width: 100px;height: 50px">
             <div
               style="display: flex;flex-direction: column;justify-content: space-between;align-items:flex-start;margin-left: 10px">
               <span style="color:#0485fd;">{{ row.title }}</span>
@@ -156,14 +155,19 @@
         </el-form-item>
 
         <el-form-item label="商品价格" required prop="price">
-          <el-input-number v-model="productForm.price" :min="0" label="商品价格"></el-input-number>
+          <el-input-number v-model="productForm.price"  :precision="1" :step="0.1"  label="商品价格"></el-input-number>
+        </el-form-item>
+
+        <el-form-item label="划线价格" required prop="t_price">
+          <el-input-number v-model="productForm.t_price" :precision="1" :step="0.1" label="划线价格"></el-input-number>
         </el-form-item>
       </el-form>
       <span style="display:block;text-align: center">
         <el-button @click="cancelMediaForm('productForm')">取 消</el-button>
         <el-button type="primary"
                    @click="dialogStatus === 'create' ? createMedia('productForm') : updateMedia('productForm')"
-                   :loading="btnLoading">{{btnLoading ? '提交中...' : '提 交'}}</el-button>
+                   :loading="btnLoading">{{dialogStatus === 'create' ? (btnLoading ? '提交中...' : '提 交') : (
+                                                                    btnLoading ? '更新中...' : '更 新')}}</el-button>
       </span>
     </el-dialog>
 
@@ -243,6 +247,9 @@ export default {
         ],
         price: [
           {required: true, message: '请输入商品价格', trigger: 'change'},
+        ],
+        t_price: [
+          {required: true, message: '请输入划线价格', trigger: 'change'},
         ]
       },
       newCoverUrl: '',

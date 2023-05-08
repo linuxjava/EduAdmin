@@ -11,14 +11,14 @@
           v-model="listQuery.status"
           placeholder="商品状态"
           clearable
+          @clear="getList"
           style="width: 110px;margin-right: 10px"
-          class="filter-item"
-        >
+          class="filter-item">
           <el-option v-for="(item, k) in statusOptions" :key="k" :label="item" :value="k"/>
         </el-select>
         <el-input
           v-model="listQuery.title"
-          placeholder="Title"
+          placeholder="请输入搜索内容"
           style="width: 200px;margin-right: 10px"
           class="filter-item"
         />
@@ -59,7 +59,7 @@
 
       <el-table-column label="订阅量" width="110px" align="center">
         <template slot-scope="{row}">
-          <span>{{ row.subscription }}</span>
+          <span>{{ row.sub_count }}</span>
         </template>
       </el-table-column>
 
@@ -73,13 +73,13 @@
 
       <el-table-column label="创建时间" width="180px" align="center">
         <template slot-scope="{row}">
-          <span>{{ row.created_time }}</span>
+          <span>{{ row.created_time | timeFilter }}</span>
         </template>
       </el-table-column>
 
       <el-table-column label="更新时间" width="180px" align="center">
         <template slot-scope="{row}">
-          <span>{{ row.updated_time }}</span>
+          <span>{{ row.updated_time | timeFilter }}</span>
         </template>
       </el-table-column>
 
@@ -121,6 +121,8 @@
             :action="uploadOptions.action"
             :headers="uploadOptions.header"
             list-type="picture-card"
+            :limit="1"
+            :on-exceed="onCoverExceed"
             :on-preview="handlePictureCardPreview"
             :on-remove="handleCoverRemove"
             :on-success="handleUploadSuccess"
@@ -128,7 +130,7 @@
             <i class="el-icon-plus"></i>
           </el-upload>
           <!--图片预览Dialog-->
-          <el-dialog :visible.sync="preDialogVisible">
+          <el-dialog :visible.sync="preDialogVisible" :append-to-body="true">
             <img width="100%" :src="preDialogImageUrl" alt="">
           </el-dialog>
         </el-form-item>
@@ -144,11 +146,14 @@
             <el-upload
               :action="uploadOptions.action"
               :headers="uploadOptions.header"
+              :before-remove="handleAudioBeforeRemove"
               :on-remove="handleAudioRemove"
+              :on-success="handleAudioUploadSuccess"
+              :on-exceed="onAudioExceed"
               :limit="1"
               style="width: 600px"
               accept=".mp3,.m4a"
-              :file-list="productForm.fileList">
+              :file-list="audioFileList">
               <el-button size="small" type="primary">上传音频</el-button>
               <div slot="tip" class="el-upload__tip">格式支持mp3、m4a文件，且不超过100M</div>
             </el-upload>
@@ -163,13 +168,20 @@
         </el-form-item>
 
         <el-form-item label="商品价格" required prop="price">
-          <el-input-number v-model="productForm.price" :min="0" label="商品价格"></el-input-number>
+          <el-input-number v-model="productForm.price" :precision="1" :step="0.1" label="商品价格"></el-input-number>
+        </el-form-item>
+
+        <el-form-item label="划线价格" required prop="t_price">
+          <el-input-number v-model="productForm.t_price" :precision="1" :step="0.1" label="划线价格"></el-input-number>
         </el-form-item>
       </el-form>
       <span style="display:block;text-align: center">
         <el-button @click="cancelForm('productForm')">取 消</el-button>
         <el-button type="primary"
-                   @click="dialogStatus === 'create' ? createAudio('productForm') : updateAudio('productForm')">提 交</el-button>
+                   @click="dialogStatus === 'create' ? createAudio('productForm') : updateAudio('productForm')"
+                   :loading="btnLoading">
+          {{dialogStatus === 'create' ? (btnLoading ? '提交中...' : '提 交') : (
+          btnLoading ? '更新中...' : '更 新')}}</el-button>
       </span>
     </el-dialog>
 
@@ -179,10 +191,9 @@
 <script>
 import waves from '@/directive/waves' // waves directive
 import Pagination from '@/components/Pagination' // secondary package based on el-pagination
-import {createAudio, updateAudio} from '@/api/audio'
 import {fetchList, create, update, remove, updateStatus} from '@/api/course'
 import Tinymce from '@/components/Tinymce'
-import {getYmdHmsTimeStr} from '@/utils'
+import {getYmdHmsTimeStr, parseTime} from '@/utils'
 import {uploadOptions} from '@/utils/upload'
 
 export default {
@@ -196,6 +207,10 @@ export default {
         '0': 'info'
       }
       return statusMap[status]
+    },
+    timeFilter(time) {
+      let date = new Date(time)
+      return parseTime(date.getTime(), '{y}-{m}-{d} {h}:{i}:{s}')
     }
   },
   data() {
@@ -222,9 +237,9 @@ export default {
         cover: '',
         title: '',
         try: '',
-        fileList: [],
+        content: '',
         price: undefined,
-        t_price: 0,
+        t_price: undefined,
         type: 'audio',
         //status初始值设置为undefined才能进行校验
         status: undefined
@@ -246,6 +261,9 @@ export default {
         ],
         price: [
           {required: true, message: '请输入商品价格', trigger: 'change'},
+        ],
+        t_price: [
+          {required: true, message: '请输入划线价格', trigger: 'change'},
         ]
       },
       newCoverUrl: '',
@@ -253,6 +271,7 @@ export default {
       preDialogVisible: false,
       coverFileList: [],
       audioFileList: [],
+      btnLoading: false
     }
   },
   mounted() {
@@ -313,16 +332,18 @@ export default {
       this.getList()
     },
     //改变商品状态
-    changeProductStatus(row, status) {
-      row.status = status
+    async changeProductStatus(row, status) {
+      await updateStatus({id: row.id, status})
       this.$message({
         message: '操作成功',
         type: "success"
       })
+      await this.getList()
     },
     //删除封面
     handleCoverRemove(file, fileList) {
-      console.log(file, fileList);
+      this.productForm.cover = ''
+      this.coverFileList = []
     },
     //预览封面
     handlePictureCardPreview(file) {
@@ -333,24 +354,54 @@ export default {
     handleUploadSuccess(response, file, fileList) {
       if(response.msg === 'ok' && response.code === 20000) {
         this.productForm.cover = response.data
+        this.coverFileList = [{
+          name: response.data,
+          url: response.data
+        }]
       } else {
-        // this.fileList = fileList
         this.$message.error('上传失败: ' + response.msg);
       }
     },
+    //文件超出个数限制时的钩子
+    onCoverExceed(files, fileList){
+      this.$message.info('只允许上传一张封面')
+    },
+    //音频上传成功
+    handleAudioUploadSuccess(response, file, fileList) {
+      console.log(response)
+      if(response.msg === 'ok' && response.code === 20000) {
+        this.productForm.content = response.data
+        this.audioFileList = [{
+          name: response.data,
+          url: response.data
+        }]
+      } else {
+        this.$message.error('上传失败: ' + response.msg);
+      }
+    },
+    handleAudioBeforeRemove(file, fileList){
+      return this.$confirm(`确定移除 ${ file.name }？`, '提示', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      })
+      // return this.$confirm(`确定移除 ${ file.name }？`);
+    },
     //音频删除
     handleAudioRemove(file, fileList) {
-      return this.$confirm(`确定移除 ${ file.name }？`);
+      this.productForm.content = ''
+      this.audioFileList = []
+    },
+    onAudioExceed(){
+      this.$message.info('只允许上传一个音频')
     },
     //删除记录
-    handleDelete(row, index) {
-      this.$notify({
-        title: '提示',
-        message: '删除成功',
-        type: 'success',
-        duration: 2000
-      })
-      this.list.splice(index, 1)
+    async handleDelete(row, index) {
+      let ids = []
+      ids.push(row.id)
+      await remove({ids})
+      this.$notify.success('删除成功');
+      await this.getList()
     },
     //新增
     showDialog() {
@@ -368,27 +419,27 @@ export default {
         //如果是创建则清空上次数据
         //清除表单内容
         this.$refs['productForm'].resetFields();
-        //清空富文本内容
-        this.$refs.introduceTinymce.setContent('')
+        this.$nextTick(() => {
+          //清空富文本内容
+          this.$refs.introduceTinymce.setContent('')
+        })
       }
     },
     //新增文章
     createAudio(formName) {
       this.$refs[formName].validate((valid) => {
         if (valid) {
-          this.productForm.id = parseInt(Math.random() * 100) + 1024
-          this.productForm.created_time = getYmdHmsTimeStr()
-          this.productForm.updated_time = getYmdHmsTimeStr()
-          this.productForm.subscription = 0
-          createAudio(this.productForm).then(() => {
-            this.list.unshift(this.productForm)
+          this.btnLoading = true
+          create(this.productForm).then(() => {
             this.dialogVisible = false;
+            this.btnLoading = false
             this.$notify({
               message: '',
               type: "success",
               title: '成功',
               duration: 2000
             })
+            this.getList()
           })
         }
       })
@@ -402,24 +453,30 @@ export default {
       this.dialogStatus = 'edit'
       this.productForm = Object.assign({}, row)
       this.dialogVisible = true;
+      this.coverFileList = [{
+        name: this.productForm.cover,
+        url: this.productForm.cover,
+      }]
+      this.audioFileList = [{
+        name: this.productForm.content,
+        url: this.productForm.content,
+      }]
     },
     //更新
     updateAudio(formName) {
-      this.$refs[formName].validate((valid) => {
+      this.$refs[formName].validate(async (valid) => {
         if (valid) {
-          let temp = Object.assign({}, this.productForm)
-          temp.updated_time = getYmdHmsTimeStr()
-          updateAudio(temp).then(() => {
-            let index = this.list.findIndex(item => item.id === temp.id)
-            this.list.splice(index, 1, temp)
-            this.dialogVisible = false
-            this.$notify({
-              type: "success",
-              title: '成功',
-              message: '更新成功',
-              duration: 2000
-            })
+          this.btnLoading = true
+          await update(this.productForm)
+          this.dialogVisible = false
+          this.btnLoading = false
+          this.$notify({
+            type: "success",
+            title: '成功',
+            message: '更新成功',
+            duration: 2000
           })
+          await this.getList()
         }
       })
     }
