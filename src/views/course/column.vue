@@ -18,7 +18,7 @@
         </el-select>
         <el-input
           v-model="listQuery.title"
-          placeholder="Title"
+          placeholder="请输入搜索内容"
           style="width: 200px;margin-right: 10px"
           class="filter-item"
           clearable
@@ -60,15 +60,15 @@
 
       <el-table-column label="更新状态" width="110px" align="center">
         <template slot-scope="{row}">
-          <el-tag :type="row.updateStatus | statusFilter">
-            {{ updateStatusOptions[row.updateStatus] }}
+          <el-tag :type="row.isend | statusFilter">
+            {{ updateStatusOptions[row.isend] }}
           </el-tag>
         </template>
       </el-table-column>
 
       <el-table-column label="订阅量" width="110px" align="center">
         <template slot-scope="{row}">
-          <span>{{ row.subscription }}</span>
+          <span>{{ row.sub_count }}</span>
         </template>
       </el-table-column>
 
@@ -82,13 +82,13 @@
 
       <el-table-column label="创建时间" width="180px" align="center">
         <template slot-scope="{row}">
-          <span>{{ row.created_time }}</span>
+          <span>{{ row.created_time | timeFilter }}</span>
         </template>
       </el-table-column>
 
       <el-table-column label="更新时间" width="180px" align="center">
         <template slot-scope="{row}">
-          <span>{{ row.updated_time }}</span>
+          <span>{{ row.updated_time | timeFilter }}</span>
         </template>
       </el-table-column>
 
@@ -122,7 +122,8 @@
       title="提示"
       :visible.sync="dialogVisible"
       fullscreen
-      @opened="openedDialog">
+      @opened="openedDialog"
+      @close="reset">
       <el-form :model="productForm" :rules="productRules" ref="productForm" label-width="100px" class="demo-ruleForm">
         <el-form-item ref="title" label="标题" required prop="title">
           <el-input v-model="productForm.title" style="width: 200px"></el-input>
@@ -130,11 +131,15 @@
         <el-form-item label="封面">
           <!--图片上传组件-->
           <el-upload
-            action="https://jsonplaceholder.typicode.com/posts/"
+            :action="uploadOptions.action"
+            :headers="uploadOptions.header"
             list-type="picture-card"
+            :limit="1"
+            :on-exceed="onCoverExceed"
             :on-preview="handlePictureCardPreview"
             :on-remove="handleCoverRemove"
-            :on-success="handleUploadSuccess">
+            :on-success="handleUploadSuccess"
+            :file-list="coverFileList">
             <i class="el-icon-plus"></i>
           </el-upload>
           <!--图片预览Dialog-->
@@ -143,14 +148,14 @@
           </el-dialog>
         </el-form-item>
 
-        <el-form-item label="课程介绍" required prop="introduce">
+        <el-form-item label="课程介绍" required prop="try">
           <template>
             <el-input
               type="textarea"
               style="width: 600px"
               :rows="3"
               placeholder="请输入课程介绍"
-              v-model="productForm.introduce">
+              v-model="productForm.try">
             </el-input>
           </template>
         </el-form-item>
@@ -163,26 +168,34 @@
 
         <el-form-item label="商品状态" required prop="status">
           <el-radio-group v-model="productForm.status">
-            <el-radio label="1">上架</el-radio>
-            <el-radio label="0">下架</el-radio>
+            <el-radio :label="1">上架</el-radio>
+            <el-radio :label="0">下架</el-radio>
           </el-radio-group>
         </el-form-item>
 
-        <el-form-item label="更新状态" required prop="updateStatus">
-          <el-radio-group v-model="productForm.updateStatus">
-            <el-radio label="1">已完结</el-radio>
-            <el-radio label="0">连载中</el-radio>
+        <el-form-item label="更新状态" required prop="isend">
+          <el-radio-group v-model="productForm.isend">
+            <el-radio :label="1">已完结</el-radio>
+            <el-radio :label="0">连载中</el-radio>
           </el-radio-group>
         </el-form-item>
 
         <el-form-item label="商品价格" required prop="price">
-          <el-input-number v-model="productForm.price" :min="0" label="商品价格"></el-input-number>
+          <el-input-number v-model="productForm.price" :precision="1" :step="0.1" label="商品价格"></el-input-number>
+        </el-form-item>
+
+        <el-form-item label="划线价格" required prop="price">
+          <el-input-number v-model="productForm.t_price" :precision="1" :step="0.1" label="划线价格"></el-input-number>
         </el-form-item>
       </el-form>
       <span style="display:block;text-align: center">
         <el-button @click="cancelForm('productForm')">取 消</el-button>
         <el-button type="primary"
-                   @click="dialogStatus === 'create' ? createColumn('productForm') : updateColumn('productForm')">提 交</el-button>
+                   @click="dialogStatus === 'create' ? createColumn('productForm') : updateColumn('productForm')"
+                   :loading="btnLoading">
+          {{dialogStatus === 'create' ? (btnLoading ? '提交中...' : '提 交') : (
+          btnLoading ? '更新中...' : '更 新')}}
+        </el-button>
       </span>
     </el-dialog>
 
@@ -192,9 +205,10 @@
 <script>
 import waves from '@/directive/waves' // waves directive
 import Pagination from '@/components/Pagination' // secondary package based on el-pagination
-import {fetchList, createColumn, updateColumn} from '@/api/column'
+import {fetchList, create, update, updateStatus, remove} from '@/api/column'
 import Tinymce from '@/components/Tinymce'
-import {getYmdHmsTimeStr} from '@/utils'
+import {parseTime} from '@/utils'
+import {uploadOptions} from '@/utils/upload'
 
 export default {
   name: 'Column',
@@ -207,10 +221,15 @@ export default {
         '0': 'info'
       }
       return statusMap[status]
+    },
+    timeFilter(time) {
+      let date = new Date(time)
+      return parseTime(date.getTime(), '{y}-{m}-{d} {h}:{i}:{s}')
     }
   },
   data() {
     return {
+      uploadOptions,
       tableKey: 0,
       list: undefined,
       total: 0,
@@ -230,13 +249,14 @@ export default {
       //添加和修改商品表单数据
       productForm: {
         id: undefined,
-        cover: 'https://wpimg.wallstcn.com/f778738c-e4f8-4870-b634-56703b4acafe.gif?imageView2/1/w/80/h/80',
+        cover: '',
         title: '',
-        introduce: '',
+        try: '',
         content: '',
         price: undefined,
+        t_price: undefined,
+        isend: undefined,
         //status初始值设置为undefined才能进行校验
-        updateStatus: undefined,
         status: undefined
       },
       //添加和修改商品校验规则
@@ -245,7 +265,7 @@ export default {
           {required: true, message: '请输入商品名称', trigger: 'blur'},
           {min: 3, max: 5, message: '长度在 3 到 10 个字符', trigger: 'blur'}
         ],
-        introduce: [
+        try: [
           {required: true, message: '请输入课程介绍', trigger: 'blur'},
         ],
         content: [
@@ -254,16 +274,21 @@ export default {
         status: [
           {required: true, message: '请选择商品状态', trigger: 'change'},
         ],
-        updateStatus: [
+        isend: [
           {required: true, message: '请选择更新状态', trigger: 'change'},
         ],
         price: [
           {required: true, message: '请输入商品价格', trigger: 'change'},
+        ],
+        t_price: [
+          {required: true, message: '请输入划线价格', trigger: 'change'},
         ]
       },
       newCoverUrl: '',
       preDialogImageUrl: '',
       preDialogVisible: false,
+      coverFileList: [],
+      btnLoading: false
     }
   },
   mounted() {
@@ -326,16 +351,18 @@ export default {
       this.getList()
     },
     //改变商品状态
-    changeProductStatus(row, status) {
-      row.status = status
+    async changeProductStatus(row, status) {
+      await updateStatus({id: row.id, status})
       this.$message({
         message: '操作成功',
         type: "success"
       })
+      await this.getList()
     },
     //删除封面
     handleCoverRemove(file, fileList) {
-      console.log(file, fileList);
+      this.productForm.cover = ''
+      this.coverFileList = []
     },
     //预览封面
     handlePictureCardPreview(file) {
@@ -344,17 +371,27 @@ export default {
     },
     //封面上传成功
     handleUploadSuccess(response, file, fileList) {
-      console.log(response, file, fileList)
+      if(response.msg === 'ok' && response.code === 20000) {
+        this.productForm.cover = response.data
+        this.coverFileList = [{
+          name: response.data,
+          url: response.data
+        }]
+      } else {
+        this.$message.error('上传失败: ' + response.msg);
+      }
+    },
+    //文件超出个数限制时的钩子
+    onCoverExceed(files, fileList){
+      this.$message.info('只允许上传一张封面')
     },
     //删除记录
-    handleDelete(row, index) {
-      this.$notify({
-        title: '提示',
-        message: '删除成功',
-        type: 'success',
-        duration: 2000
-      })
-      this.list.splice(index, 1)
+    async handleDelete(row, index) {
+      let ids = []
+      ids.push(row.id)
+      await remove({ids})
+      this.$notify.success('删除成功');
+      await this.getList()
     },
     //新增
     showDialog() {
@@ -372,20 +409,35 @@ export default {
         //如果是创建则清空上次数据
         //清除表单内容
         this.$refs['productForm'].resetFields();
-        //清空富文本内容
-        this.$refs.contentTinymce.setContent('')
+        this.reset()
+        this.$nextTick(() => {
+          //清空富文本内容
+          this.$refs.contentTinymce.setContent('')
+          this.$refs['productForm'].clearValidate()
+        })
       }
+    },
+    reset() {
+      this.productForm = {
+        id: undefined,
+        cover: '',
+        title: '',
+        try: '',
+        content: '',
+        price: undefined,
+        t_price: undefined,
+        isend: undefined,
+        status: undefined
+      }
+      this.coverFileList = []
     },
     //新增文章
     createColumn(formName) {
       this.$refs[formName].validate((valid) => {
         if (valid) {
-          this.productForm.id = parseInt(Math.random() * 100) + 1024
-          this.productForm.created_time = getYmdHmsTimeStr()
-          this.productForm.updated_time = getYmdHmsTimeStr()
-          this.productForm.subscription = 0
-          createColumn(this.productForm).then(() => {
-            this.list.unshift(this.productForm)
+          this.btnLoading = true
+          create(this.productForm).then(() => {
+            this.btnLoading = false
             this.dialogVisible = false;
             this.$notify({
               message: '',
@@ -393,6 +445,7 @@ export default {
               title: '成功',
               duration: 2000
             })
+            this.getList()
           })
         }
       })
@@ -405,17 +458,19 @@ export default {
     editColumn(row) {
       this.dialogStatus = 'edit'
       this.productForm = Object.assign({}, row)
+      this.coverFileList = [{
+        name: this.productForm.cover,
+        url: this.productForm.cover
+      }]
       this.dialogVisible = true;
     },
     //更新
     updateColumn(formName) {
       this.$refs[formName].validate((valid) => {
         if (valid) {
-          let temp = Object.assign({}, this.productForm)
-          temp.updated_time = getYmdHmsTimeStr()
-          updateColumn(temp).then(() => {
-            let index = this.list.findIndex(item => item.id === temp.id)
-            this.list.splice(index, 1, temp)
+          this.btnLoading = true
+          update(this.productForm).then(() => {
+            this.btnLoading = false
             this.dialogVisible = false
             this.$notify({
               type: "success",
@@ -423,6 +478,7 @@ export default {
               message: '更新成功',
               duration: 2000
             })
+            this.getList()
           })
         }
       })

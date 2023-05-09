@@ -193,7 +193,7 @@ import waves from '@/directive/waves' // waves directive
 import Pagination from '@/components/Pagination' // secondary package based on el-pagination
 import {fetchList, create, update, remove, updateStatus} from '@/api/course'
 import Tinymce from '@/components/Tinymce'
-import {getYmdHmsTimeStr, parseTime} from '@/utils'
+import {parseTime} from '@/utils'
 import {uploadOptions} from '@/utils/upload'
 
 export default {

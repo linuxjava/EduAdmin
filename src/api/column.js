@@ -1,69 +1,51 @@
-import request from '@/utils/request'
+import {get, post} from '@/api/request-common'
 
 export function fetchList(query) {
-  return request({
-    url: '/vue-element-admin/column/list',
-    method: 'get',
-    params: query
-  })
+  return get('/admin/s/column', query)
 }
 
-export function createColumn(data) {
-  return request({
-    url: '/vue-element-admin/column/create',
-    method: 'post',
-    data
-  })
+export function create(data) {
+  return post('/admin/s/column/save', data)
 }
 
-export function updateColumn(data) {
-  return request({
-    url: '/vue-element-admin/column/update',
-    method: 'post',
-    data
-  })
-}
-
-export function fetchDetail(query) {
-  return request({
-    url: '/vue-element-admin/column/detail',
-    method: 'get',
-    params: query
-  })
+export function update(data) {
+  return post('/admin/s/column/update', data)
 }
 
 export function updateStatus(data) {
-  return request({
-    url: '/vue-element-admin/column/status',
-    method: 'post',
-    data
-  })
+  return post('/admin/s/column/updatestatus', data)
 }
 
+export function remove(data) {
+  return post('/admin/s/column/delete', data)
+}
+
+export function updateColumn(data) {
+  // return request({
+  //   url: '/vue-element-admin/column/update',
+  //   method: 'post',
+  //   data
+  // })
+}
+
+export function fetchDetail(query) {
+  // return request({
+  //   url: '/vue-element-admin/column/detail',
+  //   method: 'get',
+  //   params: query
+  // })
+}
+
+
+
 export function updateIsEnd(data) {
-  return request({
-    url: '/vue-element-admin/column/is-end',
-    method: 'post',
-    data
-  })
+  // return request({
+  //   url: '/vue-element-admin/column/is-end',
+  //   method: 'post',
+  //   data
+  // })
 }
 
 export function fetchColumnCourse(query) {
   return get('/vue-element-admin/column/course', query)
-}
-
-function get(url, query) {
-  return request({
-    url: url,
-    method: 'get',
-    params: query
-  })
-}
-
-function post(url, data) {
-  return request({
-    url: url,
-    method: 'post',
-    data
-  })
 }
