@@ -412,6 +412,21 @@ export default {
     beforeRemove(file, fileList) {
       return this.$confirm(`确定移除 ${ file.name }？`);
     },
+    reset() {
+      this.productForm = {
+        id: undefined,
+        cover: '',
+        title: '',
+        try: '',
+        content: '',
+        price: undefined,
+        t_price: undefined,
+        type: 'audio',
+        status: undefined
+      }
+      this.coverFileList = []
+      this.audioFileList = []
+    },
     //打开新增文章对话框
     openedDialog() {
       //需要使用opened事件，不能是open事件，因为open事件时$refs还未创建
@@ -419,9 +434,11 @@ export default {
         //如果是创建则清空上次数据
         //清除表单内容
         this.$refs['productForm'].resetFields();
+        this.reset()
         this.$nextTick(() => {
           //清空富文本内容
           this.$refs.introduceTinymce.setContent('')
+          this.$refs['productForm'].clearValidate()
         })
       }
     },

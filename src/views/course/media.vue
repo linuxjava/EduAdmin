@@ -369,19 +369,34 @@ export default {
         this.$message.error('上传失败: ' + response.msg);
       }
     },
+    reset() {
+      this.productForm = {
+        id: undefined,
+        cover: '',
+        title: '',
+        try: '',
+        content: '',
+        price: undefined,
+        t_price: undefined,
+        type: 'media',
+        status: undefined
+      }
+      this.fileList = []
+    },
     //打开新增文章对话框
     openedDialog() {
       //需要使用opened事件，不能是open事件，因为open事件时$refs还未创建
       if (this.dialogStatus === 'create') {
         //如果是创建media则清空上次数据
         //清除图片数据
-        this.fileList = []
+        this.reset()
         //清除表单内容
         this.$refs['productForm'].resetFields();
         this.$nextTick(() => {
           //清空富文本内容
           this.$refs.tryTinymce.setContent('')
           this.$refs.contentTinymce.setContent('')
+          this.$refs['productForm'].clearValidate()
         })
       }
     },
