@@ -2,11 +2,11 @@
   <div class="app-container">
     <el-card class="box-card">
       <div style="display: flex">
-        <img :src="detail.cover">
+        <img :src="detail.cover" style="width: 200px;height: 100px">
         <div style="flex:1;margin-left: 16px">
           <div style="display: flex;justify-content: space-between">
             <h5 style="margin: 0px">{{ detail.title }}</h5>
-            <small style="color: #bbbbbb">{{ detail.updateStatus === 1 ? '已完结' : '连载中' }}</small>
+            <small style="color: #bbbbbb">{{ detail.isend === 1 ? '已完结' : '连载中' }}</small>
           </div>
           <p style="color: #bbbbbb;margin: 4px 0"><small>{{ detail.introduce }}</small></p>
           <p style="margin: 4px 0"><small style="color: red">$</small><small>{{ detail.price }}</small></p>
@@ -15,8 +15,8 @@
             <el-button size="mini" :type="detail.status === 1 ? 'info' : 'success'"
                        @click="updateStatus(detail.status)">{{ detail.status === 1 ? '下架' : "上架" }}
             </el-button>
-            <el-button size="mini" @click="updateIsEnd(detail.updateStatus)">
-              {{ detail.updateStatus === 1 ? '设置为连载中' : "设置为已完结" }}
+            <el-button size="mini" @click="updateIsEnd(detail.isend)">
+              {{ detail.isend === 1 ? '设置为连载中' : "设置为已完结" }}
             </el-button>
           </el-button-group>
         </div>
@@ -45,7 +45,7 @@
           clearable
           @clear="getColumnCourse"/>
 
-        <el-button v-waves class="filter-item" type="primary" icon="el-icon-search" @click="searchColumnCourse">搜索</el-button>
+        <el-button v-waves class="filter-item" type="primary" icon="el-icon-search" @click="getColumnCourse">搜索</el-button>
       </div>
     </div>
 
@@ -85,13 +85,13 @@
 
       <el-table-column label="类型" width="110px" align="center">
         <template slot-scope="{row}">
-          <span>{{ courseType[row.courseType] }}</span>
+          <span>{{ courseType[row.type] }}</span>
         </template>
       </el-table-column>
 
       <el-table-column label="访问量" width="110px" align="center">
         <template slot-scope="{row}">
-          <span>{{ row.visits}}</span>
+          <span>{{ row.sub_count}}</span>
         </template>
       </el-table-column>
 
@@ -135,7 +135,7 @@
 <script>
 import waves from '@/directive/waves' // waves directive
 import Pagination from '@/components/Pagination' // secondary package based on el-pagination
-import {fetchDetail, updateStatus, updateIsEnd, fetchColumnCourse} from '@/api/column'
+import {getDetail, updateStatus, updateEnd, addColumnCourse, fetchColumnCourse, removeColumnCourse} from '@/api/column'
 import Sortable from "sortablejs";
 import ChooseCourse from "@/components/ChooseCourse";
 
@@ -160,25 +160,29 @@ export default {
     return {
       detail: {
         id: undefined,
-        cover: '',
         title: '',
+        cover: '',
         introduce: '',
         content: '',
         price: undefined,
-        updateStatus: undefined,
-        status: undefined
+        t_price: undefined,
+        status: undefined,
+        isend: undefined,
       },
       columnCourseLoading: false,
       columnCourses: [],
       columnCoursesTotal: 0,
       listQuery: {
+        column_id: undefined,
         page: 1,
         limit: 10,
-        status: undefined,
-        title: '',
       },
       statusOptions: ['未上架', '已上架'],
-      courseType: ['图文', '音频', '视频'],
+      courseType: {
+        'media': '图文',
+        'audio': '音频',
+        'video': '视频'
+      },
       oldList: [],
       newList: []
     }
@@ -193,15 +197,17 @@ export default {
   },
   methods: {
     getDetail() {
-      fetchDetail({id}).then(res => {
+      getDetail({id}).then(res => {
         this.detail = res.data
       })
     },
     async getColumnCourse() {
-      this.listLoading = true
-      const {data} = await fetchColumnCourse(this.listQuery)
-      this.columnCourses = data.data
-      this.columnCoursesTotal = data.total
+      this.columnCourseLoading = true
+      this.listQuery.column_id = id
+      const res = await fetchColumnCourse(this.listQuery)
+      this.columnCourseLoading = false
+      this.columnCourses = res.data.items
+      this.columnCoursesTotal = res.data.total
       this.$nextTick(() => {
         this.setSort()
       })
@@ -228,41 +234,40 @@ export default {
         id,
         status: newStatus
       }).then(res => {
-        if (res.code === 20000) {
-          this.detail.status = newStatus
-        }
+        this.detail.status = newStatus
+        this.$message.success('更新成功');
       })
     },
     updateIsEnd(isEnd) {
       const newStatus = isEnd === 1 ? 0 : 1
-      updateIsEnd({
+      updateEnd({
         id,
-        status: newStatus
+        isend: newStatus
       }).then(res => {
-        console.log(res)
-        if (res.code === 20000) {
-          this.detail.updateStatus = newStatus
-        }
+        this.detail.isend = newStatus
+        this.$message.success('更新成功');
       })
-    },
-    //搜索专辑课程
-    searchColumnCourse() {
-      this.getColumnCourse()
     },
     //添加专辑课程
     addColunmCourse() {
-      this.$refs.chooseCourse.open(data => {
-        this.columnCourses = [...data, ...this.columnCourses]
+      this.$refs.chooseCourse.open(async data => {
+        console.log(data)
+        await addColumnCourse( {column_id: id, course_id: data[0].id})
+        await this.getColumnCourse()
       })
     },
-    deleteItem(row, index){
+    async deleteItem(row, index){
+      await removeColumnCourse({
+        column_id: id,
+        ids: [row.id]
+      })
+      await this.getColumnCourse()
       this.$notify({
         title: '提示',
         message: '删除成功',
         type: 'success',
         duration: 2000
       })
-      this.columnCourses.splice(index, 1)
     }
   }
 }

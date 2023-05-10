@@ -45,6 +45,7 @@
               :data="list"
               stripe
               fit
+              v-loading="tableLoading"
               highlight-current-row
               style="width: 100%;height: 100%;overflow: auto"
               @selection-change="handleSelectionChange">
@@ -72,7 +73,7 @@
 
               <el-table-column label="类型" width="110px" align="center">
                 <template slot-scope="{row}">
-                  <span>{{ row.courseType | courseTypeFilter }}</span>
+                  <span>{{ row.type | courseTypeFilter }}</span>
                 </template>
               </el-table-column>
             </el-table>
@@ -116,9 +117,9 @@ export default {
   filters: {
     courseTypeFilter(status) {
       const statusMap = {
-        0: '图文',
-        1: '音频',
-        2: '视频',
+        'media': '图文',
+        'audio': '音频',
+        'video': '视频',
       }
       return statusMap[status]
     }
@@ -134,7 +135,8 @@ export default {
         limit: 10,
       },
       multipleSelection: [],
-      callback: undefined
+      callback: undefined,
+      tableLoading: false
     }
   },
   methods: {
@@ -158,21 +160,21 @@ export default {
       let method = fetchList
       if(key == 1) {
         // method = fetchMediaList
-        this.list.type = 'media'
+        this.listQuery.type = 'media'
       }else if(key == 2) {
         // method = fetchAudioList
-        this.list.type = 'audio'
+        this.listQuery.type = 'audio'
       }else if(key == 3) {
         // method = fetchVideoList
-        this.list.type = 'video'
+        this.listQuery.type = 'video'
       }
-
-
+      this.list = []
+      this.total = 0
+      this.tableLoading = true
       method(this.listQuery).then(res => {
-        if(res && res.code === 20000) {
-          this.list = res.data.items
-          this.total = res.data.total
-        }
+        this.tableLoading = false
+        this.list = res.data.items
+        this.total = res.data.total
       })
     },
     pagination() {

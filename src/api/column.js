@@ -16,26 +16,21 @@ export function updateStatus(data) {
   return post('/admin/s/column/updatestatus', data)
 }
 
+export function updateEnd(data) {
+  return post('/admin/s/column/updateend', data)
+}
+
 export function remove(data) {
   return post('/admin/s/column/delete', data)
 }
 
-export function updateColumn(data) {
-  // return request({
-  //   url: '/vue-element-admin/column/update',
-  //   method: 'post',
-  //   data
-  // })
+export function getDetail(query) {
+  return get('/admin/s/column/read', query)
 }
 
-export function fetchDetail(query) {
-  // return request({
-  //   url: '/vue-element-admin/column/detail',
-  //   method: 'get',
-  //   params: query
-  // })
+export function addColumnCourse(data){
+  return post('/admin/s/column_course/save', data)
 }
-
 
 
 export function updateIsEnd(data) {
@@ -47,5 +42,9 @@ export function updateIsEnd(data) {
 }
 
 export function fetchColumnCourse(query) {
-  return get('/vue-element-admin/column/course', query)
+  return get('/admin/s/column_course', query)
+}
+
+export function removeColumnCourse(data) {
+  return post('/admin/s/column_course/delete', data)
 }
