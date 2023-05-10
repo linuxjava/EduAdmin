@@ -162,7 +162,7 @@ export default {
           ths: [
             {lab: '课程标题', prop: 'title'},
             {lab: '课程类型', prop: 'type'},
-            {lab: '学习时长', prop: 'created_time'}
+            {lab: '学习时长', prop: 'total_time'}
           ],
           data: [],
           total: 0,
@@ -218,11 +218,16 @@ export default {
         }else if(this.currentTab.name === 'history' || this.currentTab.name === 'comment') {
           this.currentTab.data.map(item => item.type = typeOptions[item.type])
         }
+        this.currentTab.data.map(item => item.created_time = this.timeFormat(item.created_time))
         this.currentTab.total = res.data.total
       }
     },
     handleTabClick(){
       this.getTableData()
+    },
+    timeFormat(time) {
+      let date = new Date(time)
+      return parseTime(date.getTime(), '{y}-{m}-{d} {h}:{i}:{s}')
     }
   }
 
