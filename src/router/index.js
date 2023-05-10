@@ -539,7 +539,7 @@ export const asyncRoutes = [
 ]
 
 //是否使用手动补齐User子菜单的方式
-export const isUsePaddingMethod = true
+export const isUsePaddingMethod = false
 
 /**
  * asyncRoutes

@@ -8,16 +8,16 @@
       <el-container style="height: 600px;">
         <el-header style="width: 100%">
           <el-row style="height: 50px">
-            <el-col :span="6"><div>ID: {{userDetail.user_id}}</div></el-col>
-            <el-col :span="6"><div>用户名: {{userDetail.username}}</div></el-col>
-            <el-col :span="6"><div>昵称: {{userDetail.nickname}}</div></el-col>
-            <el-col :span="6"><div>手机号: {{userDetail.phone}}</div></el-col>
+            <el-col :span="6"><div>ID: {{userDetail.id}}</div></el-col>
+            <el-col :span="6"><div>用户名: {{userDetail.user.username}}</div></el-col>
+            <el-col :span="6"><div>昵称: {{userDetail.user.nickname}}</div></el-col>
+            <el-col :span="6"><div>手机号: {{userDetail.user.phone}}</div></el-col>
           </el-row>
           <el-row>
             <el-col :span="6"><div>锁定: {{userDetail.status === 0 ? '未锁定' : '已锁定'}}</div></el-col>
             <el-col :span="6"><div>会员: {{userDetail.user_level}}</div></el-col>
-            <el-col :span="6"><div>会员到期时间: {{userDetail.user_level_expire}}</div></el-col>
-            <el-col :span="6"><div>注册时间: {{userDetail.created_time}}</div></el-col>
+            <el-col :span="6"><div>会员到期时间: {{userDetail.user_level_expire | timeFilter}}</div></el-col>
+            <el-col :span="6"><div>注册时间: {{userDetail.created_time | timeFilter}}</div></el-col>
           </el-row>
         </el-header>
 
@@ -28,6 +28,7 @@
                 :data="item.data"
                 border
                 fit
+                v-loading="tableLoading"
                 highlight-current-row
                 style="width: 100%;height: 100%;overflow: auto">
                 <el-table-column v-for="(d, dI) in item.ths" :key="dI" :label="d.lab" :prop="d.prop" min-width="150px" align="center">
@@ -48,15 +49,11 @@
 </template>
 
 <script>
-import {
-  getUserDetail,
-  fetchCourseSubscription,
-  fetchColumnSubscription,
-  fetchOrderRecord,
+import {fetchUserDetail, fetchCourseSubscription, fetchColumnSubscription, fetchOrderRecord,
   fetchHistory,
-  fetchComment
-} from '@/api/my_user'
+  fetchComment} from '@/api/user'
 import Pagination from '@/components/Pagination' // secondary package based on el-pagination
+import {parseTime} from '@/utils'
 
 let statusOptions = {
   'succ': '支持成功',
@@ -74,9 +71,18 @@ let typeOptions = {
 export default {
   name: "info",
   components: {Pagination},
+  filters: {
+    timeFilter(time) {
+      let date = new Date(time)
+      return parseTime(date.getTime(), '{y}-{m}-{d} {h}:{i}:{s}')
+    }
+  },
   computed: {
     currentTab: function (){
       return this.tabs.find( item => item.name === this.activeName)
+    },
+    tableLoading: function () {
+      return this.currentTab.tableLoading
     }
   },
   data() {
@@ -110,7 +116,8 @@ export default {
           form: {
             page: 1,
             limit: 10
-          }
+          },
+          tableLoading: false
         },
         {
           name: 'column',
@@ -126,7 +133,8 @@ export default {
           form: {
             page: 1,
             limit: 10
-          }
+          },
+          tableLoading: false
         },
         {
           name: 'order',
@@ -145,7 +153,8 @@ export default {
           form: {
             page: 1,
             limit: 10
-          }
+          },
+          tableLoading: false
         },
         {
           name: 'history',
@@ -161,7 +170,8 @@ export default {
           form: {
             page: 1,
             limit: 10
-          }
+          },
+          tableLoading: false
         },
         {
           name: 'comment',
@@ -178,10 +188,11 @@ export default {
           form: {
             page: 1,
             limit: 10
-          }
+          },
+          tableLoading: false
         }
       ],
-      activeName: 'course'
+      activeName: 'course',
     }
   },
   methods: {
@@ -192,14 +203,14 @@ export default {
       this.getTableData()
     },
     async getUserDetail() {
-      const res = await getUserDetail({id: this.id})
-      if(res.code === 20000) {
-        this.userDetail = res.data
-      }
+      const res = await fetchUserDetail({id: this.id})
+      this.userDetail = res.data
     },
     async getTableData() {
-      let query = {id: this.id, ...this.currentTab.form}
+      let query = {user_id: this.id, ...this.currentTab.form}
+      this.currentTab.tableLoading = true
       const res = await this.currentTab.req(query)
+      this.currentTab.tableLoading = false
       if(res.code === 20000) {
         this.currentTab.data = res.data.items
         if(this.currentTab.name === 'order') {
