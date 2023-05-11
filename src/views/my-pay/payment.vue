@@ -27,9 +27,9 @@
         </template>
       </el-table-column>
 
-      <el-table-column label="开户行" width="250px" align="center">
+      <el-table-column label="开户行" width="400px" align="center">
         <template slot-scope="{row}">
-          {{ row.address }}
+          {{ row.province }} {{ row.city }} {{ row.area }} {{ row.bank }}
         </template>
       </el-table-column>
 
@@ -76,8 +76,8 @@
           </el-select>
         </el-form-item>
 
-        <el-form-item label="地址" required prop="address">
-          <el-input v-model="form.address" style="width: 250px"
+        <el-form-item label="地址" required prop="path">
+          <el-input v-model="form.path" style="width: 250px"
                     type="textarea"
                     :rows="2"></el-input>
         </el-form-item>
@@ -86,13 +86,13 @@
           <el-input v-model="form.name" style="width: 250px"></el-input>
         </el-form-item>
 
-        <el-form-item label="身份证" required prop="cardId">
+<!--        <el-form-item label="身份证" required prop="cardId">
           <el-input v-model="form.cardId" style="width: 250px"></el-input>
         </el-form-item>
 
         <el-form-item label="手机号" required prop="phoneNumber">
           <el-input v-model="form.phoneNumber" style="width: 250px"></el-input>
-        </el-form-item>
+        </el-form-item>-->
 
       </el-form>
       <span style="display:block;text-align: center">
@@ -108,7 +108,7 @@ import waves from '@/directive/waves' // waves directive
 import Pagination from '@/components/Pagination' // secondary package based on el-pagination
 import VDistpicker from 'v-distpicker'
 import {getBank} from '@/utils/bank.js'
-import {fetchAccounts, delAccount, addAccount} from '@/api/pay'
+import {fetchAccounts, addAccount, delAccount, updateAccount} from '@/api/pay'
 
 export default {
   name: "Payment",
@@ -135,7 +135,8 @@ export default {
         province: '',
         city: '',
         area: '',
-        address: ''
+        path: '',
+        status: 1
       },
       rules: {
         account: [
@@ -154,11 +155,11 @@ export default {
         bank: [
           {required: true, message: '请选择银行', trigger: 'change'},
         ],
-        address: [
+        path: [
           {required: true, message: '请输入地址', trigger: 'blur'},
         ]
       },
-      banks: [],
+      banks: []
     }
   },
   created() {
@@ -170,11 +171,8 @@ export default {
       this.loadingShow = true
       const res = await fetchAccounts(this.listQuery)
       this.loadingShow = false
-      console.log(res)
-      if(res.code === 20000) {
-        this.list = res.data.items
-        this.total = res.data.total
-      }
+      this.list = res.data.items
+      this.total = res.data.total
     },
     addAccount(){
       this.form.dialogType = 'add'
@@ -191,7 +189,7 @@ export default {
       this.form.province = row.province
       this.form.city = row.city
       this.form.area = row.area
-      this.form.address = row.address
+      this.form.path = row.path
       this.dialogVisible = true;
     },
     deleteItem(row){
@@ -200,7 +198,7 @@ export default {
         cancelButtonText: '取消',
         type: 'warning'
       }).then(action => {
-        delAccount({accountId: row.account}).then(res => {
+        delAccount({ids: [row.id]}).then(res => {
           if (res.code === 20000) {
             this.getList()
             this.$notify({
@@ -218,7 +216,7 @@ export default {
       })
     },
     submit() {
-      this.$refs.form.validate(valid => {
+      this.$refs.form.validate( async valid => {
         if(!valid){
           return
         }
@@ -229,18 +227,14 @@ export default {
           return;
         }
 
-        addAccount(this.form).then(res => {
-          this.dialogVisible = false
-          if(res.code === 20000) {
-            this.getList()
-            this.$notify({
-              type: 'success',
-              message: this.form.dialogType === 'add' ? '添加成功' : '更新成功',
-              duration: 2000,
-              title: '成功'
-            })
-          }
-        })
+        if(this.form.dialogType === 'add') {
+          await addAccount(this.form)
+        }else {
+          await updateAccount(this.form)
+        }
+        this.dialogVisible = false
+        this.$notify.success(this.form.dialogType === 'add' ? '添加成功' : '更新成功')
+        await this.getList()
       })
     },
     reset() {
@@ -254,7 +248,7 @@ export default {
         province: '',
         city: '',
         area: '',
-        address: ''
+        path: ''
       }
     },
     province(e, key){

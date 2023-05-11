@@ -76,9 +76,9 @@ service.interceptors.response.use(
     }
   },
   error => {
-    console.log('response err', error) // for debug
+    console.log('response err') // for debug
     Message({
-      message: (error.msg + ': ' + error.data) || "Server Response Error",
+      message: error,
       type: 'error',
       duration: 5 * 1000
     })

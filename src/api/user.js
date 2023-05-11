@@ -50,11 +50,13 @@ export function fetchUserDetail(query) {
 
 export function fetchCourseSubscription(query) {
   query.type = 'course'
+  query.comment = 0
   return get('/admin/s/order_item', query)
 }
 
 export function fetchColumnSubscription(query) {
   query.type = 'column'
+  query.comment = 0
   return get('/admin/s/order_item', query)
 }
 
@@ -67,5 +69,6 @@ export function fetchHistory(query) {
 }
 
 export function fetchComment(query) {
-  return get('/vue-element-admin/user/comment', query)
+  query.comment = 1
+  return get('/admin/s/order_item', query)
 }

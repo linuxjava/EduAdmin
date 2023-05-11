@@ -29,6 +29,7 @@
       :data="list"
       border
       fit
+      v-loading="tableLoading"
       highlight-current-row
       style="width: 100%;height: 100%;overflow: auto"
       @selection-change="handleSelectionChange">
@@ -77,8 +78,8 @@
 
       <el-table-column label="创建时间/支付时间" width="200px" align="center">
         <template slot-scope="{row}">
-          <span>{{ row.created_time }}</span><br/>
-          <span>{{ row.pay_time }}</span>
+          <span>{{ row.created_time | timeFilter }}</span><br/>
+          <span>{{ row.pay_time | timeFilter }}</span>
         </template>
       </el-table-column>
 
@@ -101,7 +102,7 @@
 <script>
 import waves from '@/directive/waves' // waves directive
 import Pagination from '@/components/Pagination' // secondary package based on el-pagination
-import {getOrders, orderDel} from '@/api/pay'
+import {fetchOrders, removeOrder} from '@/api/pay'
 import {parseTime} from "@/utils";
 
 
@@ -109,6 +110,12 @@ export default {
   name: "Order",
   components: {Pagination},
   directives: {waves},
+  filters: {
+    timeFilter(time) {
+      let date = new Date(time)
+      return parseTime(date.getTime(), '{y}-{m}-{d} {h}:{i}:{s}')
+    }
+  },
   data() {
     return {
       list: [],
@@ -132,7 +139,8 @@ export default {
         'wechat': '微信',
       },
       multiSelections: [],
-      downloadLoading: false
+      downloadLoading: false,
+      tableLoading: false
     }
   },
   created() {
@@ -140,11 +148,11 @@ export default {
   },
   methods: {
     async getList() {
-      let res = await getOrders(this.listQuery)
-      if (res.code === 20000) {
-        this.list = res.data.items
-        this.total = res.data.total
-      }
+      this.tableLoading = true
+      let res = await fetchOrders(this.listQuery)
+      this.tableLoading = false
+      this.list = res.data.items
+      this.total = res.data.total
     },
     handleSelectionChange(val) {
       this.multiSelections = val
@@ -155,11 +163,7 @@ export default {
         cancelButtonText: '取消',
         type: 'warning'
       }).then(action => {
-        // let index = this.list.findIndex(item => row.no == item.no)
-        // console.log(row.no, index)
-        // this.list.splice(index, 1)
-        // console.log(this.list)
-        orderDel({no: row.no}).then(res => {
+        removeOrder({ids: [row.id]}).then(res => {
           if (res.code === 20000) {
             this.getList()
             this.$notify({

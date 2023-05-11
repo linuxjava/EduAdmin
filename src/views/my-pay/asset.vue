@@ -2,39 +2,39 @@
   <div class="app-container">
     <div>
       <el-row :gutter="20">
-        <el-col :span="6">
+        <el-col :span="8">
           <el-card class="box-card">
             <div slot="header" style="font-size: 16px;display: flex;justify-content: space-between;align-items: center;height: 18.4px">
               <span>可用余额（元）</span>
               <el-button type="primary" @click="cashOut">申请提现</el-button>
             </div>
-            <span style="font-size: 40px;font-weight: bold">{{ availableAmount }}</span>
+            <span style="font-size: 40px;font-weight: bold">{{ schoolDetail.balance }}</span>
           </el-card>
         </el-col>
-        <el-col :span="6">
+        <el-col :span="8">
           <el-card class="box-card">
             <div slot="header" class="clearfix" style="font-size: 16px">
               <span>累计收入（元）</span>
             </div>
-            <span style="font-size: 40px;font-weight: bold">20.00</span>
+            <span style="font-size: 40px;font-weight: bold">{{ schoolDetail.w_balance }}</span>
           </el-card>
         </el-col>
-        <el-col :span="6">
+        <el-col :span="8">
           <el-card class="box-card">
             <div slot="header" class="clearfix" style="font-size: 16px">
               <span>待结算金额（元）</span>
             </div>
-            <span style="font-size: 40px;font-weight: bold">20.00</span>
+            <span style="font-size: 40px;font-weight: bold">{{ schoolDetail.t_balance }}</span>
           </el-card>
         </el-col>
-        <el-col :span="6">
+<!--        <el-col :span="6">
           <el-card class="box-card">
             <div slot="header" class="clearfix" style="font-size: 16px">
               <span>冻结金额（元）</span>
             </div>
             <span style="font-size: 40px;font-weight: bold">10.00</span>
           </el-card>
-        </el-col>
+        </el-col>-->
       </el-row>
     </div>
 
@@ -50,7 +50,7 @@
 
       <el-table-column label="交易日期" width="200px" align="center">
         <template slot-scope="{row}">
-          {{ row.created_time }}
+          {{ row.created_time | timeFilter }}
         </template>
       </el-table-column>
 
@@ -92,8 +92,8 @@
           <el-input-number v-model="form.price" :min="0" label="提现金额"></el-input-number>
         </el-form-item>
 
-        <el-form-item label="提现账户" required prop="accountId">
-          <el-select v-model="form.accountId" placeholder="请选择" style="width: 270px">
+        <el-form-item label="提现账户" required prop="cash_id">
+          <el-select v-model="form.cash_id" placeholder="请选择" style="width: 270px">
             <el-option
               v-for="item in accounts"
               :key="item.id"
@@ -119,10 +119,18 @@
 import waves from '@/directive/waves' // waves directive
 import Pagination from '@/components/Pagination' // secondary package based on el-pagination
 import {fetchCashOut, fetchAccounts, cashOut} from '@/api/pay'
+import {fetchSchoolDetail} from '@/api/school'
+import {parseTime} from "@/utils";
 export default {
   name: "Asset",
   components: {Pagination},
   directives: {waves},
+  filters: {
+    timeFilter(time) {
+      let date = new Date(time)
+      return parseTime(date.getTime(), '{y}-{m}-{d} {h}:{i}:{s}')
+    }
+  },
   data(){
     const validatePrice = (rule, value, callback) => {
       if (value > this.availableAmount) {
@@ -134,7 +142,6 @@ export default {
       }
     }
     return {
-      availableAmount: 20.00,
       showLoading: false,
       list: [],
       total: 0,
@@ -145,17 +152,22 @@ export default {
       dialogVisible: false,
       form: {
         price: 0,
-        accountId: ''
+        cash_id: ''
       },
       rules: {
         price: [
           {validator: validatePrice, trigger: 'blur'},
         ],
-        accountId: [
+        cash_id: [
           {required: true, message: '请输入提现账户', trigger: 'change'},
         ]
       },
       accounts: [],
+      schoolDetail: {
+        balance: 0,
+        w_balance: 0,
+        t_balance: 0,
+      }
     }
   },
   created(){
@@ -163,8 +175,11 @@ export default {
   },
   methods: {
     async getList() {
+      let res = await fetchSchoolDetail()
+      this.schoolDetail = res.data
+
       this.showLoading = true
-      const res = await fetchCashOut(this.listQuery)
+      res = await fetchCashOut(this.listQuery)
       this.showLoading = false
       if(res.code === 20000) {
         this.list = res.data.items
@@ -197,7 +212,7 @@ export default {
           this.dialogVisible = false;
           this.form = {
             price: 0,
-            accountId: ''
+            cash_id: ''
           }
           if(res.code === 20000) {
             this.$message.success('提现成功')
