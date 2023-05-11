@@ -2,50 +2,50 @@ import {get, post} from './request-common'
 
 
 export function fetchGroup(data){
-  return get('/vue-element-admin/marketing/group/list', data)
+  return get('/admin/s/group', data)
 }
 
 export function groupTakeOff(data){
-  return get('/vue-element-admin/marketing/group/takeoff', data)
+  return get('/admin/s/group/updatestatus', data)
 }
 
 export function groupAdd(data) {
-  return post('/vue-element-admin/marketing/group/add', data)
+  return post('/admin/s/group/save', data)
 }
 
 export function groupEdit(data) {
-  return post('/vue-element-admin/marketing/group/edit', data)
+  return post('/admin/s/group/update', data)
 }
 
 export function fetchSplash(data){
-  return get('/vue-element-admin/marketing/splash/list', data)
+  return get('/admin/s/flashsale', data)
 }
 
 export function splashTakeOff(data) {
-  return get('/vue-element-admin/marketing/splash/takeoff', data)
+  return get('/admin/s/flashsale/updatestatus', data)
 }
 
 export function splashAdd(data) {
-  return post('/vue-element-admin/marketing/splash/add', data)
+  return post('/admin/s/flashsale/save', data)
 }
 
 export function splashEdit(data) {
-  return post('/vue-element-admin/marketing/splash/edit', data)
+  return post('/admin/s/flashsale/update', data)
 }
 
 export function fetchCoupon(data){
-  return get('/vue-element-admin/marketing/coupon/list', data)
+  return get('/admin/s/coupon', data)
 }
 
 export function couponTakeOff(data) {
-  return get('/vue-element-admin/marketing/coupon/takeoff', data)
+  return get('/admin/s/coupon/updatestatus', data)
 }
 
 export function couponAdd(data) {
-  return post('/vue-element-admin/marketing/coupon/add', data)
+  return post('/admin/s/coupon/save', data)
 }
 
 export function couponEdit(data) {
-  return post('/vue-element-admin/marketing/coupon/edit', data)
+  return post('/admin/s/coupon/update', data)
 }
 

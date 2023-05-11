@@ -41,13 +41,13 @@
 
       <el-table-column label="发行量" width="120px" align="center">
         <template slot-scope="{row}">
-          {{ row.circulation }}
+          {{ row.c_num }}
         </template>
       </el-table-column>
 
       <el-table-column label="已领取" width="120px" align="center">
         <template slot-scope="{row}">
-          {{ row.received }}
+          {{ row.received_num }}
         </template>
       </el-table-column>
 
@@ -109,8 +109,12 @@
           <el-input-number v-model="form.price" :min="0" label="面值"></el-input-number>
         </el-form-item>
 
-        <el-form-item label="发行量" required prop="circulation">
-          <el-input-number v-model="form.circulation" :min="0" label="发行量"></el-input-number>
+        <el-form-item label="发行量" required prop="c_num">
+          <el-input-number v-model="form.c_num" :min="0" label="发行量"></el-input-number>
+        </el-form-item>
+
+        <el-form-item label="使用条件" required prop="condition">
+          <el-input-number v-model="form.condition" :min="0" label="使用条件"></el-input-number>
         </el-form-item>
 
         <el-form-item label="使用期限" required prop="startEndTime">
@@ -143,6 +147,7 @@ import waves from '@/directive/waves' // waves directive
 import Pagination from '@/components/Pagination' // secondary package based on el-pagination
 import {fetchCoupon, couponTakeOff, couponAdd, couponEdit} from '@/api/marketing'
 import ChooseCourse from "@/components/ChooseCourse";
+import {parseTime} from "@/utils";
 
 export default {
   name: "coupon",
@@ -180,9 +185,14 @@ export default {
       form: {
         id: undefined,
         type: '',
+        goods_id: undefined,
         associateCourse: undefined,
         price: undefined,
-        circulation: undefined,
+        c_num: undefined,
+        condition: undefined,
+        status: 1,
+        start_time: undefined,
+        end_time: undefined,
         startEndTime: undefined,
       },
       rules: {
@@ -195,8 +205,11 @@ export default {
         price: [
           {required: true, message: '请设置面值', trigger: 'change'},
         ],
-        circulation: [
+        c_num: [
           {required: true, message: '请设置发行量', trigger: 'change'},
+        ],
+        condition: [
+          {required: true, message: '请设置满多少元可用', trigger: 'change'},
         ],
         startEndTime: [
           {required: true, message: '请选择使用期限', trigger: 'change'},
@@ -231,6 +244,8 @@ export default {
       if (res.code === 20000) {
         this.list = res.data.items.map(item => {
           item.time_status = this.getTimeStatus(item)
+          item.start_time = this.timeFormat(item.start_time)
+          item.end_time = this.timeFormat(item.end_time)
           return item
         })
         this.total = res.data.total
@@ -244,12 +259,14 @@ export default {
       this.dialogType = 'edit'
       this.form.id = row.id
       this.form.type = row.type
+      this.form.goods_id = row.goods_id
       this.form.associateCourse = {}
       this.form.associateCourse.cover = row.value.cover
       this.form.associateCourse.title = row.value.title
       this.form.associateCourse.price = row.value.price
       this.form.price = row.price
-      this.form.circulation = row.circulation
+      this.form.c_num = row.c_num
+      this.form.condition = row.condition
       this.form.startEndTime = [row.start_time, row.end_time]
       this.dialogVisible = true
     },
@@ -281,6 +298,8 @@ export default {
       })
     },
     async commit(){
+      this.form.start_time = this.form.startEndTime[0]
+      this.form.end_time = this.form.startEndTime[1]
       if(this.dialogType === 'add') {
         const res = await couponAdd(this.form)
         this.dialogVisible = false
@@ -305,19 +324,29 @@ export default {
       this.form = {
         id: undefined,
         type: '',
+        goods_id: undefined,
         associateCourse: undefined,
         price: undefined,
-        circulation: undefined,
+        c_num: undefined,
+        condition: undefined,
+        status: 1,
+        start_time: undefined,
+        end_time: undefined,
         startEndTime: undefined,
       }
     },
     associateCourse(){
       this.$refs.chooseCourse.open(data => {
         this.form.associateCourse = {}
+        this.form.goods_id = data[0].id
         this.form.associateCourse.cover = data[0].cover
         this.form.associateCourse.title = data[0].title
         this.form.associateCourse.price = data[0].price
       })
+    },
+    timeFormat(time) {
+      let date = new Date(time)
+      return parseTime(date.getTime(), '{y}-{m}-{d} {h}:{i}:{s}')
     }
   }
 }

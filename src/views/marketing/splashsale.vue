@@ -33,7 +33,7 @@
 
       <el-table-column label="限制人数" width="250px" align="center">
         <template slot-scope="{row}">
-          {{ row.limit_num }}
+          {{ row.s_num }}
         </template>
       </el-table-column>
 
@@ -91,12 +91,12 @@
           </el-card>
         </el-form-item>
 
-        <el-form-item label="秒杀价" required prop="groupPrice">
-          <el-input-number v-model="form.groupPrice" :min="0" label="秒杀价"></el-input-number>
+        <el-form-item label="秒杀价" required prop="price">
+          <el-input-number v-model="form.price" :min="0" label="秒杀价"></el-input-number>
         </el-form-item>
 
-        <el-form-item label="秒杀人数" required prop="groupPeople">
-          <el-input-number v-model="form.groupPeople" :min="0" label="秒杀人数"></el-input-number>
+        <el-form-item label="秒杀人数" required prop="s_num">
+          <el-input-number v-model="form.s_num" :min="0" label="秒杀人数"></el-input-number>
         </el-form-item>
 
         <el-form-item label="秒杀活动时间" required prop="startEndTime">
@@ -129,6 +129,7 @@ import waves from '@/directive/waves' // waves directive
 import Pagination from '@/components/Pagination' // secondary package based on el-pagination
 import {fetchSplash, splashTakeOff, splashAdd, splashEdit} from '@/api/marketing'
 import ChooseCourse from "@/components/ChooseCourse";
+import {parseTime} from "@/utils";
 
 export default {
   name: "splashsale",
@@ -165,9 +166,13 @@ export default {
       form: {
         id: undefined,
         type: '',
+        goods_id: undefined,
         associateCourse: undefined,
-        groupPrice: undefined,
-        groupPeople: undefined,
+        price: undefined,
+        s_num: undefined,
+        status: 1,
+        start_time: undefined,
+        end_time: undefined,
         startEndTime: undefined,
       },
       rules: {
@@ -177,10 +182,10 @@ export default {
         associateCourse: [
           {required: true, validator: validateAssociateCourse, trigger: 'blur'},
         ],
-        groupPrice: [
+        price: [
           {required: true, message: '请设置秒杀价格', trigger: 'change'},
         ],
-        groupPeople: [
+        s_num: [
           {required: true, message: '请设置秒杀人数', trigger: 'change'},
         ],
         startEndTime: [
@@ -216,6 +221,8 @@ export default {
       if (res.code === 20000) {
         this.list = res.data.items.map(item => {
           item.time_status = this.getTimeStatus(item)
+          item.start_time = this.timeFormat(item.start_time)
+          item.end_time = this.timeFormat(item.end_time)
           return item
         })
         this.total = res.data.total
@@ -229,12 +236,13 @@ export default {
       this.dialogType = 'edit'
       this.form.id = row.id
       this.form.type = row.type
+      this.form.goods_id = row.goods_id
       this.form.associateCourse = {}
       this.form.associateCourse.cover = row.value.cover
       this.form.associateCourse.title = row.value.title
       this.form.associateCourse.price = row.value.price
-      this.form.groupPrice = row.price
-      this.form.groupPeople = row.limit_num
+      this.form.price = row.price
+      this.form.s_num = row.s_num
       this.form.startEndTime = [row.start_time, row.end_time]
       this.dialogVisible = true
     },
@@ -244,7 +252,7 @@ export default {
         cancelButtonText: '取消',
         type: 'warning'
       }).then(action => {
-        splashTakeOff({id: row.id}).then(res => {
+        splashTakeOff({id: row.id, status: 1}).then(res => {
           console.log(this.list)
           this.$message.success('下架成功')
           this.getList()
@@ -266,7 +274,8 @@ export default {
       })
     },
     async commit(){
-      console.log(this.form)
+      this.form.start_time = this.form.startEndTime[0]
+      this.form.end_time = this.form.startEndTime[1]
       if(this.dialogType === 'add') {
         const res = await splashAdd(this.form)
         this.dialogVisible = false
@@ -291,19 +300,28 @@ export default {
       this.form = {
         id: undefined,
         type: '',
+        goods_id: '',
         associateCourse: undefined,
-        groupPrice: undefined,
-        groupPeople: undefined,
+        price: undefined,
+        s_num: undefined,
+        status: 1,
+        start_time: undefined,
+        end_time: undefined,
         startEndTime: undefined,
       }
     },
     associateCourse(){
       this.$refs.chooseCourse.open(data => {
         this.form.associateCourse = {}
+        this.form.goods_id = data[0].id
         this.form.associateCourse.cover = data[0].cover
         this.form.associateCourse.title = data[0].title
         this.form.associateCourse.price = data[0].price
       })
+    },
+    timeFormat(time) {
+      let date = new Date(time)
+      return parseTime(date.getTime(), '{y}-{m}-{d} {h}:{i}:{s}')
     }
   }
 }
