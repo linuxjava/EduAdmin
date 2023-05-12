@@ -18,7 +18,7 @@
       <el-table-column label="用户" min-width="250px" align="center">
         <template slot-scope="{row}">
           <div style="display: flex;align-items: center">
-            <img :src="row.user.avatar" style="width: 50px;height: 50px;border-radius: 25px;margin-right: 15px">
+            <img :src="row.user.avatar || 'https://img.zcool.cn/community/01e4ea57a6e2550000018c1bfdce56.jpg'" style="width: 50px;height: 50px;border-radius: 25px;margin-right: 15px">
             {{ row.user.username || row.user.nickname }}
           </div>
         </template>
@@ -30,14 +30,14 @@
             创建人{{ row.roles && row.roles.length > 0 ? ", " : ""}}
           </span>
           <span>
-            {{ row.roles.map(role => role.name).join(', ') }}
+            {{ row.roles.map(role => role.name).join(', ') || '暂无角色' }}
           </span>
         </template>
       </el-table-column>
 
       <el-table-column label="创建时间" width="300px" align="center">
         <template slot-scope="{row}">
-          {{ row.created_time }}
+          {{ row.created_time | timeFilter }}
         </template>
       </el-table-column>
 
@@ -64,8 +64,8 @@
       @close='closeStaffDialog'>
       <el-form :model="staffForm" :rules="staffRules" ref="staffForm" label-width="130px">
 
-        <el-form-item label="关键词" required prop="name">
-          <el-input v-model="staffForm.name" placeholder="用户名/手机/邮箱"></el-input>
+        <el-form-item label="关键词" required prop="keyword">
+          <el-input v-model="staffForm.keyword" placeholder="用户名/手机/邮箱"></el-input>
         </el-form-item>
 
       </el-form>
@@ -81,12 +81,9 @@
       @close='closeAuthDialog'>
       <el-form :model="authForm" :rules="authRules" label-position="center" ref="authForm" label-width="200px">
 
-        <el-form-item label="角色" required prop="roles">
-          <el-checkbox-group v-model="authForm.roles"  style="margin-left: 40px">
-            <el-checkbox label="超级管理员"></el-checkbox>
-            <el-checkbox label="运营"></el-checkbox>
-            <el-checkbox label="开发"></el-checkbox>
-            <el-checkbox label="产品"></el-checkbox>
+        <el-form-item label="角色" required prop="role_ids">
+          <el-checkbox-group v-model="authForm.role_ids"  style="margin-left: 40px">
+            <el-checkbox v-for="(item, index) in roles" :key="index" :label="item.name"></el-checkbox>
           </el-checkbox-group>
         </el-form-item>
 
@@ -102,12 +99,19 @@
 <script>
 import waves from '@/directive/waves' // waves directive
 import Pagination from '@/components/Pagination' // secondary package based on el-pagination
-import {fetchStaff, staffDel, staffAdd, setRole} from '@/api/setting'
+import {fetchStaff, staffDel, staffAdd, setRole, fetchRole} from '@/api/setting'
+import {parseTime} from "@/utils";
 
 export default {
   name: "staff",
   components: {Pagination},
   directives: {waves},
+  filters: {
+    timeFilter(time) {
+      let date = new Date(time)
+      return parseTime(date.getTime(), '{y}-{m}-{d} {h}:{i}:{s}')
+    }
+  },
   data() {
     return {
       list: [],
@@ -119,23 +123,24 @@ export default {
       loadingShow: false,
       dialogVisible: false,
       staffForm: {
-        name: undefined
+        keyword: undefined
       },
       staffRules: {
-        name: [
+        keyword: [
           {required: true, message: '请输入关键词', trigger: 'blur'},
         ]
       },
       authDialogVisible: false,
       authForm: {
         id: undefined,
-        roles: []
+        role_ids: []
       },
       authRules: {
-        roles: [
+        role_ids: [
           {type: 'array', required: true, message: '请选择角色', trigger: 'change'},
         ]
       },
+      roles: []
     }
   },
   created() {
@@ -144,12 +149,15 @@ export default {
   methods: {
     async getList() {
       this.loadingShow = true
-      const res = await fetchStaff(this.listQuery)
+      let res = await fetchStaff(this.listQuery)
       this.loadingShow = false
       if (res.code === 20000) {
         this.list = res.data.items
         this.total = res.data.total
       }
+
+      res = await fetchRole({page: 1})
+      this.roles = res.data.items
     },
     addStaff() {
       this.dialogVisible = true
@@ -158,7 +166,7 @@ export default {
       this.authDialogVisible = true
       this.authForm.id = row.id
       row.roles.map(item => {
-        this.authForm.roles.push(item.name)
+        this.authForm.role_ids.push(item.name)
       })
     },
     deleteItem(row) {
@@ -167,8 +175,7 @@ export default {
         cancelButtonText: '取消',
         type: 'warning'
       }).then(action => {
-        staffDel({id: row.id}).then(res => {
-          console.log(this.list)
+        staffDel({staff_id: row.id}).then(res => {
           this.$message.success('删除成功')
           this.getList()
         })
@@ -200,7 +207,7 @@ export default {
     },
     resetStaff() {
       this.staffForm = {
-        name: undefined,
+        keyword: undefined,
       }
     },
     closeAuthDialog(){
@@ -212,7 +219,7 @@ export default {
     resetAuth() {
       this.authForm = {
         id: undefined,
-        roles: []
+        role_ids: []
       }
     },
     submitAuth() {
@@ -224,6 +231,10 @@ export default {
       })
     },
     async commitAuth() {
+      this.authForm.role_ids = this.authForm.role_ids.map(name => {
+        const r = this.roles.find(role => role.name === name)
+        return r.id
+      })
       const res = await setRole(this.authForm)
       this.authDialogVisible = false
       if (res.code === 20000) {

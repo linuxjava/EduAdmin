@@ -1,21 +1,25 @@
 import {get, post} from "@/api/request-common";
 
 export function fetchStaff(data){
-  return get('/vue-element-admin/setting/staff/list', data)
+  return get('/admin/s/schoolstaff', data)
 }
 
 export function staffDel(data) {
-  return post('/vue-element-admin/setting/staff/del', data)
+  return post('/admin/s/schoolstaff/delete', data)
 }
 
 export function staffAdd(data) {
-  return post('/vue-element-admin/setting/staff/add', data)
+  return post('/admin/s/schoolstaff/save', data)
 }
 
 export function setRole(data) {
-  return post('/vue-element-admin/setting/staff/setRole', data)
+  return post('/admin/s/schoolstaff/setroles', data)
 }
 
 export function fetchRole(data){
-  return get('/vue-element-admin/setting/role/list', data)
+  return get('/admin/role', data)
+}
+
+export function fetchRoleAuth(data){
+  return get('/admin/role/read', data)
 }

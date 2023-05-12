@@ -64,7 +64,7 @@
 <script>
 import waves from '@/directive/waves' // waves directive
 import Pagination from '@/components/Pagination' // secondary package based on el-pagination
-import {fetchRole, staffDel, staffAdd, setRole} from '@/api/setting'
+import {fetchRole, fetchRoleAuth} from '@/api/setting'
 
 export default {
   name: "role",
@@ -83,83 +83,15 @@ export default {
       roleForm: {
         name: undefined
       },
-      menuData: [{
-        label: '一级 1',
-        children: [{
-          label: '二级 1-1',
-          children: [{
-            label: '三级 1-1-1'
-          }]
-        }]
-      }, {
-        label: '一级 2',
-        children: [{
-          label: '二级 2-1',
-          children: [{
-            label: '三级 2-1-1'
-          }]
-        }, {
-          label: '二级 2-2',
-          children: [{
-            label: '三级 2-2-1'
-          }]
-        }]
-      }, {
-        label: '一级 3',
-        children: [{
-          label: '二级 3-1',
-          children: [{
-            label: '三级 3-1-1'
-          }]
-        }, {
-          label: '二级 3-2',
-          children: [{
-            label: '三级 3-2-1'
-          }]
-        }]
-      }],
+      menuData: [],
       menuProps: {
         children: 'children',
-        label: 'label'
+        label: 'title'
       },
-      authData: [{
-        label: '一级 1',
-        children: [{
-          label: '二级 1-1',
-          children: [{
-            label: '三级 1-1-1'
-          }]
-        }]
-      }, {
-        label: '一级 2',
-        children: [{
-          label: '二级 2-1',
-          children: [{
-            label: '三级 2-1-1'
-          }]
-        }, {
-          label: '二级 2-2',
-          children: [{
-            label: '三级 2-2-1'
-          }]
-        }]
-      }, {
-        label: '一级 3',
-        children: [{
-          label: '二级 3-1',
-          children: [{
-            label: '三级 3-1-1'
-          }]
-        }, {
-          label: '二级 3-2',
-          children: [{
-            label: '三级 3-2-1'
-          }]
-        }]
-      }],
+      authData: [],
       authProps: {
         children: 'children',
-        label: 'label'
+        label: 'title'
       }
     }
   },
@@ -176,9 +108,12 @@ export default {
         this.total = res.data.total
       }
     },
-    checkAuth(row) {
+    async checkAuth(row) {
       this.dialogVisible = true
       this.roleForm.name = row.name
+      const res = await fetchRoleAuth({id: row.id})
+      this.menuData= res.data.menus
+      this.authData= res.data.accesses
     },
     closeCheckAuthDialog() {
 
