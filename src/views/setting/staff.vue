@@ -83,7 +83,7 @@
 
         <el-form-item label="角色" required prop="role_ids">
           <el-checkbox-group v-model="authForm.role_ids"  style="margin-left: 40px">
-            <el-checkbox v-for="(item, index) in roles" :key="index" :label="item.name"></el-checkbox>
+            <el-checkbox v-for="(item, index) in roles" :key="index" :label="item.id">{{item.name}}</el-checkbox>
           </el-checkbox-group>
         </el-form-item>
 
@@ -166,7 +166,7 @@ export default {
       this.authDialogVisible = true
       this.authForm.id = row.id
       row.roles.map(item => {
-        this.authForm.role_ids.push(item.name)
+        this.authForm.role_ids.push(item.id)
       })
     },
     deleteItem(row) {
@@ -231,10 +231,6 @@ export default {
       })
     },
     async commitAuth() {
-      this.authForm.role_ids = this.authForm.role_ids.map(name => {
-        const r = this.roles.find(role => role.name === name)
-        return r.id
-      })
       const res = await setRole(this.authForm)
       this.authDialogVisible = false
       if (res.code === 20000) {

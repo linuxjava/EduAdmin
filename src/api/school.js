@@ -12,3 +12,7 @@ export function addSchool(data) {
 export function fetchSchoolDetail(data) {
   return get('/admin/s/school/read', {id: getSchoolId()})
 }
+
+export function updateSchool(data) {
+  return post('/admin/s/school/update', data)
+}

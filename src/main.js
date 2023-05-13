@@ -20,6 +20,7 @@ import './utils/error-log' // error log
 
 import * as filters from './filters' // global filters
 import permission from '@/directive/permission'
+import VueClipboard from 'vue-clipboard2'
 
 /**
  * If you don't want to use mock-server
@@ -48,6 +49,7 @@ Object.keys(filters).forEach(key => {
 Vue.directive('permission', permission)
 
 Vue.config.productionTip = false
+Vue.use(VueClipboard)
 
 new Vue({
   el: '#app',
