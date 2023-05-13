@@ -2,6 +2,7 @@ import Cookies from 'js-cookie'
 
 const TokenKey = 'token'
 const SchoolIdKey = 'schoolId'
+const IsPlatform = 'IisPlatform'
 
 export function getToken() {
   return Cookies.get(TokenKey)
@@ -25,4 +26,16 @@ export function setSchoolId(schoolId) {
 
 export function removeSchoolId() {
   return Cookies.remove(SchoolIdKey)
+}
+
+export function getIsPlatform() {
+  return Cookies.get(IsPlatform)
+}
+
+export function setIsPlatform(isPlatform) {
+  return Cookies.set(IsPlatform, isPlatform)
+}
+
+export function removeIsPlatform() {
+  return Cookies.remove(IsPlatform)
 }

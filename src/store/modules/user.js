@@ -1,5 +1,5 @@
 import { login, register, logout, getInfo } from '@/api/user'
-import { getToken, setToken, removeToken, removeSchoolId } from '@/utils/auth'
+import { getToken, setToken, removeToken, removeSchoolId, setIsPlatform, removeIsPlatform } from '@/utils/auth'
 import router, { resetRouter } from '@/router'
 
 const state = {
@@ -10,6 +10,7 @@ const state = {
   roles: [],
   menus: [],
   accesses: [],
+  isPlatform: false
 }
 
 const mutations = {
@@ -33,6 +34,9 @@ const mutations = {
   },
   SET_ACCESSES: (state, accesses) => {
     state.accesses = accesses
+  },
+  SET_IS_PLATFORM: (state, isPlatform) => {
+    state.isPlatform = isPlatform
   }
 }
 
@@ -73,7 +77,7 @@ const actions = {
           reject('Verification failed, please Login again.')
         }
 
-        const { roles, menus, accesses, name, avatar, introduction } = data
+        const { roles, menus, accesses, name, avatar, introduction, isplatform } = data
 
         // // roles must be a non-empty array
         // if (!roles || roles.length <= 0) {
@@ -86,6 +90,8 @@ const actions = {
         commit('SET_NAME', name)
         commit('SET_AVATAR', avatar)
         commit('SET_INTRODUCTION', introduction)
+        commit('SET_IS_PLATFORM', isplatform)
+        setIsPlatform(isplatform)
         resolve(data)
       }).catch(error => {
         reject(error)
@@ -101,8 +107,10 @@ const actions = {
         commit('SET_ROLES', [])
         commit('SET_MENUS', [])
         commit('SET_ACCESSES', [])
+        commit('SET_IS_PLATFORM', false)
         removeToken()
         removeSchoolId()
+        removeIsPlatform()
         resetRouter()
 
         // reset visited views and cached views
@@ -123,8 +131,10 @@ const actions = {
       commit('SET_ROLES', [])
       commit('SET_MENUS', [])
       commit('SET_ACCESSES', [])
+      commit('SET_IS_PLATFORM', false)
       removeToken()
       removeSchoolId()
+      removeIsPlatform()
       resolve()
     })
   },

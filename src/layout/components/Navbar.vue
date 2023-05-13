@@ -4,7 +4,8 @@
       <hamburger id="hamburger-container" :is-active="sidebar.opened" class="hamburger-container" @toggleClick="toggleSideBar" />
       <breadcrumb id="breadcrumb-container" class="breadcrumb-container" />
     </div>
-    <div style="display: inline-flex;margin-left: 20px;height: 100%;align-items: center" v-if="!isShowMenu">我的网校列表</div>
+    <div style="display: inline-flex;margin-left: 20px;height: 100%;align-items: center" v-if="!isShowMenu">
+      {{this.$route.fullPath === '/' ? '我的网校列表' : '平台角色设置'}}</div>
 
     <div class="right-menu">
       <template v-if="device!=='mobile'">
@@ -38,6 +39,14 @@
           <a target="_blank" href="https://panjiachen.github.io/vue-element-admin-site/#/">
             <el-dropdown-item>Docs</el-dropdown-item>
           </a>-->
+
+          <el-dropdown-item v-if="this.$route.fullPath !== '/'" divided @click.native="onSchoole">
+            <span style="display:block;">我的网校</span>
+          </el-dropdown-item>
+
+          <el-dropdown-item v-if="this.$route.fullPath !== '/platform/role' && this.$store.getters.isPlatform" divided @click.native="onPlatform">
+            <span style="display:block;">平台角色</span>
+          </el-dropdown-item>
           <el-dropdown-item divided @click.native="logout">
             <span style="display:block;">退出登录</span>
           </el-dropdown-item>
@@ -55,7 +64,7 @@ import ErrorLog from '@/components/ErrorLog'
 import Screenfull from '@/components/Screenfull'
 import SizeSelect from '@/components/SizeSelect'
 import Search from '@/components/HeaderSearch'
-
+// console.log($router)
 export default {
   props:{
     isShowMenu: {
@@ -85,6 +94,12 @@ export default {
     async logout() {
       await this.$store.dispatch('user/logout')
       this.$router.push(`/login?redirect=${this.$route.fullPath}`)
+    },
+    onPlatform(){
+      this.$router.push({path: '/platform/role'})
+    },
+    onSchoole(){
+      this.$router.push({path: '/'})
     }
   }
 }

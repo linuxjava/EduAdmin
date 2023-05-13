@@ -44,7 +44,7 @@
       <el-table-column label="操作" width="300px" align="center">
         <template slot-scope="{row, $index}">
           <el-button type="primary" size="mini" @click="authConfig(row)">
-            配置权限
+            设置角色
           </el-button>
 
           <el-button type="danger" size="mini" @click="deleteItem(row)" :disabled="row.status === 0">

@@ -3,7 +3,7 @@ import store from './store'
 import { Message } from 'element-ui'
 import NProgress from 'nprogress' // progress bar
 import 'nprogress/nprogress.css' // progress bar style
-import { getToken, removeSchoolId } from '@/utils/auth' // get token from cookie
+import { getToken, removeSchoolId, getIsPlatform } from '@/utils/auth' // get token from cookie
 import getPageTitle from '@/utils/get-page-title'
 
 NProgress.configure({ showSpinner: false }) // NProgress Configuration
@@ -27,6 +27,11 @@ router.beforeEach(async(to, from, next) => {
       NProgress.done() // hack: https://github.com/PanJiaChen/vue-element-admin/pull/2939
     } else if(to.path === '/') { //如果访问的是首页, 则获取用户信息
       removeSchoolId() //回到首页后要清除schoolId
+      await store.dispatch('user/getInfo')
+      next()
+      NProgress.done()
+      return
+    } else if(getIsPlatform() && to.path === '/platform/role') { //如果访问的是平台页面
       await store.dispatch('user/getInfo')
       next()
       NProgress.done()
