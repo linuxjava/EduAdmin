@@ -1,96 +1,100 @@
 <template>
   <div class="dashboard-editor-container">
-    <github-corner class="github-corner" />
-
     <panel-group @handleSetLineChartData="handleSetLineChartData" />
 
-    <el-row style="background:#fff;padding:16px 16px 0;margin-bottom:32px;">
-      <line-chart :chart-data="lineChartData" />
+    <el-row :gutter="40">
+     <el-col :span="12">
+       <card-box title="运营小助手" :data="cardData1"></card-box>
+     </el-col>
+     <el-col :span="12">
+       <card-box title="常见功能" :data="cardData2"></card-box>
+     </el-col>
     </el-row>
 
-    <el-row :gutter="32">
-      <el-col :xs="24" :sm="24" :lg="8">
-        <div class="chart-wrapper">
-          <raddar-chart />
-        </div>
+    <el-row :gutter="40" style="margin-top: 40px">
+      <el-col :span="12">
+        <course title="最新课程" :data="cardData1"></course>
       </el-col>
-      <el-col :xs="24" :sm="24" :lg="8">
-        <div class="chart-wrapper">
-          <pie-chart />
-        </div>
-      </el-col>
-      <el-col :xs="24" :sm="24" :lg="8">
-        <div class="chart-wrapper">
-          <bar-chart />
-        </div>
+      <el-col :span="12">
+        <order title="最近订单" :data="cardData2"></order>
       </el-col>
     </el-row>
-
-<!--    <el-row :gutter="8">
-      <el-col :xs="{span: 24}" :sm="{span: 24}" :md="{span: 24}" :lg="{span: 12}" :xl="{span: 12}" style="padding-right:8px;margin-bottom:30px;">
-        <transaction-table />
-      </el-col>
-      <el-col :xs="{span: 24}" :sm="{span: 12}" :md="{span: 12}" :lg="{span: 6}" :xl="{span: 6}" style="margin-bottom:30px;">
-        <todo-list />
-      </el-col>
-      <el-col :xs="{span: 24}" :sm="{span: 12}" :md="{span: 12}" :lg="{span: 6}" :xl="{span: 6}" style="margin-bottom:30px;">
-        <box-card />
-      </el-col>
-    </el-row>-->
   </div>
 </template>
 
 <script>
-import GithubCorner from '@/components/GithubCorner'
 import PanelGroup from './components/PanelGroup'
-import LineChart from './components/LineChart'
-import RaddarChart from './components/RaddarChart'
-import PieChart from './components/PieChart'
-import BarChart from './components/BarChart'
-// import TransactionTable from './components/TransactionTable'
-import TodoList from './components/TodoList'
-import BoxCard from './components/BoxCard'
-
-const lineChartData = {
-  newVisitis: {
-    expectedData: [100, 120, 161, 134, 105, 160, 165],
-    actualData: [120, 82, 91, 154, 162, 140, 145]
-  },
-  messages: {
-    expectedData: [200, 192, 120, 144, 160, 130, 140],
-    actualData: [180, 160, 151, 106, 145, 150, 130]
-  },
-  purchases: {
-    expectedData: [80, 100, 121, 104, 105, 90, 100],
-    actualData: [120, 90, 100, 138, 142, 130, 130]
-  },
-  shoppings: {
-    expectedData: [130, 140, 141, 142, 145, 150, 160],
-    actualData: [120, 82, 91, 154, 162, 140, 130]
-  }
-}
+import CardBox from './components/CardBox'
+import Course from './components/Course'
+import Order from './components/Order'
 
 export default {
   name: 'DashboardAdmin',
   components: {
-    GithubCorner,
     PanelGroup,
-    LineChart,
-    RaddarChart,
-    PieChart,
-    BarChart,
-    // TransactionTable,
-    TodoList,
-    BoxCard
+    CardBox,
+    Course,
+    Order
   },
   data() {
     return {
-      lineChartData: lineChartData.newVisitis
+      cardData1: [
+        {
+          name: '拼团',
+          remark: '多人拼团享受优惠',
+          icon: 'el-icon-user',
+          path: 'Group'
+        },
+        {
+          name: '秒杀',
+          remark: '限时秒杀享低价',
+          icon: 'el-icon-info',
+          path: 'Flashsale'
+        },
+        {
+          name: '优惠卷',
+          remark: '有偿课程激励推广',
+          icon: 'el-icon-upload',
+          path: 'Coupon'
+        },
+        {
+          name: '限时折扣',
+          remark: '限时限量打折降价',
+          icon: 'el-icon-s-platform',
+          path: 'Flashsale'
+        },
+      ],
+      cardData2: [
+        {
+          name: '图文',
+          remark: '图文课程',
+          icon: 'el-icon-user',
+          path: 'Media'
+        },
+        {
+          name: '音频',
+          remark: '音频课程',
+          icon: 'el-icon-info',
+          path: 'Audio'
+        },
+        {
+          name: '视频',
+          remark: '视频课程',
+          icon: 'el-icon-upload',
+          path: 'Video'
+        },
+        {
+          name: '专栏',
+          remark: '专栏课程',
+          icon: 'el-icon-s-platform',
+          path: 'Column'
+        },
+      ]
     }
   },
   methods: {
     handleSetLineChartData(type) {
-      this.lineChartData = lineChartData[type]
+
     }
   }
 }
@@ -101,19 +105,6 @@ export default {
   padding: 32px;
   background-color: rgb(240, 242, 245);
   position: relative;
-
-  .github-corner {
-    position: absolute;
-    top: 0px;
-    border: 0;
-    right: 0;
-  }
-
-  .chart-wrapper {
-    background: #fff;
-    padding: 16px 16px 0;
-    margin-bottom: 32px;
-  }
 }
 
 @media (max-width:1024px) {

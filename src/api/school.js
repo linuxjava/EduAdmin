@@ -16,3 +16,7 @@ export function fetchSchoolDetail(data) {
 export function updateSchool(data) {
   return post('/admin/s/school/update', data)
 }
+
+export function statistics(data) {
+  return get('/admin/s/statistics\n', data)
+}
