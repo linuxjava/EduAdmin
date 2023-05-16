@@ -126,9 +126,9 @@ export default {
     return {
       isLogin: true,
       loginForm: {
-        username: 'xiaotest2',
-        password: 'xiaotest2',
-        repassword: 'xiaotest2',
+        username: '',
+        password: '',
+        repassword: '',
       },
       passwordType: 'password',
       repasswordType: 'password',
